@@ -1,0 +1,28 @@
+body {
+    background: linear-gradient(to right, #6dd5fa, #2980b9);
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Segoe UI", sans-serif;
+  }
+  
+  .login-box {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 30px;
+    border-radius: 15px;
+    width: 350px;
+    backdrop-filter: blur(6px);
+  }
+  
+  .btn-primary {
+    background-color: #004aad;
+    border: none;
+    transition: background 0.3s;
+  }
+  
+  .btn-primary:hover {
+    background-color: #003a88;
+  }
+  
