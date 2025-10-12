@@ -17,6 +17,34 @@ label_encoders = None
 features = None
 datos_cache = None
 
+# 🆕 Usuarios permitidos (puedes cambiarlo o conectar a una BD más adelante)
+USUARIOS = {
+    "admin": "1234",
+    "usuario": "vuelos2025"
+}
+
+# -------------------------------
+# LOGIN / LOGOUT
+# -------------------------------
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        usuario = request.form['usuario']
+        contrasena = request.form['contrasena']
+
+        if usuario in USUARIOS and USUARIOS[usuario] == contrasena:
+            session['usuario'] = usuario
+            return redirect(url_for('index'))
+        else:
+            return render_template('login.html', error="Usuario o contraseña incorrectos")
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('usuario', None)
+    return redirect(url_for('login'))
+
 def cargar_modelo():
     """Carga el modelo entrenado"""
     global modelo, scaler, label_encoders, features
