@@ -1,254 +1,296 @@
+/* 🎨 Estilo innovador para Login - Predicción de Vuelos */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
+
+:root {
+  --color-primario: #0d6efd;
+  --color-secundario: #6610f2;
+  --color-fondo: radial-gradient(circle at top left, #0d1b2a, #1b263b, #415a77);
+  --color-card: rgba(255, 255, 255, 0.12);
+  --color-borde: rgba(255, 255, 255, 0.25);
+  --color-texto: #f8f9fa;
+  --color-acento: #00d9ff;
+  --color-error: #ff4d6d;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
+
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  padding: 20px;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  backdrop-filter: blur(20px);
 }
+
+/* 🌐 Contenedor principal */
 .container-auth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  max-width: 400px;
+  padding: 2rem;
 }
+
+/* 🧊 Tarjeta con efecto glass */
 .auth-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 15px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  padding: 40px 30px;
-  animation: slideUp 0.5s ease-out;
+  background: var(--color-card);
+  border: 1px solid var(--color-borde);
+  border-radius: 25px;
+  padding: 2.5rem 3rem;
+  width: 420px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(15px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+
+.auth-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 40px rgba(13, 110, 253, 0.4);
 }
+
+/* ✈️ Logo */
 .logo {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
 }
+
 .logo i {
-  font-size: 48px;
-  color: #667eea;
-  margin-bottom: 10px;
+  font-size: 3rem;
+  color: var(--color-acento);
 }
+
 .logo h1 {
-  color: #333;
-  font-size: 28px;
-  font-weight: bold;
-  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-top: 0.3rem;
 }
+
 .logo p {
-  color: #999;
-  font-size: 13px;
-  margin-top: 5px;
+  color: #adb5bd;
+  font-size: 0.9rem;
 }
-.form-group {
-  margin-bottom: 18px;
-}
-.form-group label {
-  color: #555;
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 13px;
-  display: block;
-}
-.form-group input {
-  width: 100%;
-  padding: 12px 15px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.3s;
-  background: #f9f9f9;
-}
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-.btn-submit {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  margin-top: 10px;
-}
-.btn-submit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-}
-.btn-submit:active {
-  transform: translateY(0);
-}
-.alert {
-  margin-bottom: 20px;
-  padding: 12px 15px;
-  border-radius: 8px;
-  font-size: 13px;
-  animation: slideDown 0.3s ease-out;
-}
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.alert-success {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-.alert-danger {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-.alert-warning {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
-}
+
+/* 🔁 Botones de pestañas */
 .tab-buttons {
   display: flex;
-  gap: 10px;
-  margin-bottom: 25px;
+  justify-content: center;
+  margin: 1.5rem 0;
+  gap: 1rem;
 }
+
 .tab-btn {
-  flex: 1;
-  padding: 10px;
-  background: #f0f0f0;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--color-borde);
+  color: #dee2e6;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  color: #666;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
 }
+
 .tab-btn.active {
-  background: #667eea;
+  background: linear-gradient(90deg, var(--color-primario), var(--color-secundario));
+  border: none;
   color: white;
-  border-color: #667eea;
+  box-shadow: 0 0 15px rgba(13, 110, 253, 0.4);
 }
+
+.tab-btn:hover {
+  transform: scale(1.05);
+}
+
+/* 📋 Formularios */
 .tab-content {
   display: none;
 }
+
 .tab-content.active {
   display: block;
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.5s ease;
 }
+
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.divider {
-  text-align: center;
-  margin: 20px 0;
-  color: #999;
-  font-size: 12px;
+
+/* 🧾 Inputs */
+.form-group {
+  margin-bottom: 1.2rem;
 }
-.social-login {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+
+label {
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 0.4rem;
 }
-.social-btn {
-  flex: 1;
-  padding: 10px;
-  border: 2px solid #e0e0e0;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.3s;
-  color: #666;
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  outline: none;
+  transition: 0.3s;
 }
-.social-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+
+input:focus {
+  border-color: var(--color-acento);
+  box-shadow: 0 0 10px var(--color-acento);
 }
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 15px;
-}
-.remember-me input {
-  cursor: pointer;
-}
+
+/* 👁️ Mostrar contraseña */
 .password-toggle {
   position: relative;
 }
+
 .password-toggle i {
   position: absolute;
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #999;
-  font-size: 16px;
+  color: #aaa;
+  transition: 0.3s;
 }
+
+.password-toggle i:hover {
+  color: var(--color-acento);
+}
+
+/* 🔋 Fortaleza de contraseña */
 .password-strength {
-  margin-top: 8px;
-  height: 4px;
-  background: #e0e0e0;
-  border-radius: 2px;
+  margin-top: 6px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
   overflow: hidden;
 }
+
 .password-strength-bar {
-  height: 100%;
+  height: 5px;
   width: 0%;
-  background: #f0ad4e;
-  transition: all 0.3s;
+  transition: width 0.4s ease, background 0.4s ease;
+  border-radius: 10px;
 }
+
 .password-strength-bar.weak {
   width: 33%;
-  background: #dc3545;
+  background: var(--color-error);
 }
+
 .password-strength-bar.medium {
   width: 66%;
-  background: #ffc107;
+  background: #ffb703;
 }
+
 .password-strength-bar.strong {
   width: 100%;
-  background: #28a745;
+  background: #06d6a0;
 }
-@media (max-width: 576px) {
-  .auth-card {
-    padding: 30px 20px;
-  }
-  .logo h1 {
-    font-size: 24px;
-  }
-  .logo i {
-    font-size: 40px;
-  }
+
+/* ✅ Recuérdame */
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+
+/* 🚀 Botones principales */
+.btn-submit {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--color-primario), var(--color-secundario));
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+  box-shadow: 0 0 25px rgba(13, 110, 253, 0.6);
+  transform: scale(1.03);
+}
+
+/* 🔹 Divisor */
+.divider {
+  text-align: center;
+  color: #ccc;
+  font-size: 0.85rem;
+  margin: 1rem 0;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  height: 1px;
+  width: 40%;
+  top: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+/* 🌐 Login social */
+.social-login {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.social-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ddd;
+  padding: 0.6rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.social-btn i {
+  margin-right: 6px;
+}
+
+.social-btn:hover {
+  background: var(--color-acento);
+  color: #000;
+  transform: translateY(-3px);
+}
+
+/* ⚠️ Alertas Flask */
+.alert {
+  border-radius: 10px;
+  font-size: 0.9rem;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
+  animation: fadeIn 0.5s ease;
 }
