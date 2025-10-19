@@ -304,7 +304,7 @@
     );
     color: white;
   }
-  /* ========== RESPONSIVE ========== */
+  /* ========== RESPONSIVo ========== */
   @media (max-width: 768px) {
     .form-row {
       grid-template-columns: 1fr;
