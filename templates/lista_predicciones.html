@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Historial de Predicciones</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #5a189a, #000);
+        color: white;
+        margin: 0;
+        padding: 0;
+      }
+      header {
+        text-align: center;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+      }
+      table {
+        width: 90%;
+        margin: 30px auto;
+        border-collapse: collapse;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: 15px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      th {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      tr:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>📋 Historial de Predicciones</h1>
+    </header>
+
+    <table>
+      <tr>
+        <th>Usuario</th>
+        <th>Origen</th>
+        <th>Destino</th>
+        <th>Fecha</th>
+        <th>Precio Estimado</th>
+      </tr>
+      <tr>
+        <td>Juan Pérez</td>
+        <td>Lima</td>
+        <td>Cusco</td>
+        <td>2025-10-08</td>
+        <td>S/ 230</td>
+      </tr>
+      <tr>
+        <td>Ana López</td>
+        <td>Arequipa</td>
+        <td>Lima</td>
+        <td>2025-10-07</td>
+        <td>S/ 280</td>
+      </tr>
+    </table>
+  </body>
+</html>
