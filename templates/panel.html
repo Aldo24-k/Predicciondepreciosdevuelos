@@ -1,11 +1,239 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Panel del Agente - Predicción de Vuelos</title>
+    <style>
+      /* Fondo animado morado/negro */
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(120deg, #3a0ca3, #000000);
+        background-size: 200% 200%;
+        animation: movimiento 6s infinite alternate;
+        color: white;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      @keyframes movimiento {
+        from {
+          background-position: left;
+        }
+        to {
+          background-position: right;
+        }
+      }
+
+      /* Menú lateral */
+      nav {
+        width: 250px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 40px;
+        border-right: 2px solid rgba(255, 255, 255, 0.1);
+      }
+
+      nav h2 {
+        font-size: 22px;
+        margin-bottom: 30px;
+        text-shadow: 0 0 10px #9d4edd;
+      }
+
+      nav a {
+        text-decoration: none;
+        color: white;
+        padding: 12px 20px;
+        width: 80%;
+        text-align: center;
+        border-radius: 10px;
+        margin: 10px 0;
+        background: rgba(255, 255, 255, 0.05);
+        transition: all 0.3s;
+      }
+
+      nav a:hover,
+      nav a.active {
+        background: linear-gradient(90deg, #9d4edd, #5a189a);
+        box-shadow: 0 0 15px #9d4edd;
+      }
+
+      /* Contenedor principal */
+      main {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+      }
+
+      h1 {
+        text-align: center;
+        text-shadow: 0 0 12px #b5179e;
+      }
+
+      /* Secciones con efecto glass */
+      .section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        margin-top: 30px;
+        box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
+      }
+
+      /* Tarjetas del Dashboard */
+      .cards {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+      }
+
+      .card {
+        flex: 1;
+        min-width: 220px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        transition: transform 0.3s, background 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        background: rgba(157, 78, 221, 0.3);
+      }
+
+      /* Tabla */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        text-align: center;
+        padding: 12px;
+      }
+
+      th {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      tr:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Ocultar secciones */
+      .section {
+        display: none;
+      }
+      .active-section {
+        display: block;
+      }
+    </style>
   </head>
   <body>
-    se agregara mas cosas
+    <nav>
+      <h2>🛫 Agente Panel</h2>
+      <a href="#" class="active" onclick="mostrarSeccion('dashboard')"
+        >Dashboard</a
+      >
+      <a href="#" onclick="mostrarSeccion('usuarios')">Usuarios</a>
+      <a href="#" onclick="mostrarSeccion('predicciones')">Predicciones</a>
+    </nav>
+
+    <main>
+      <!-- Dashboard -->
+      <section id="dashboard" class="section active-section">
+        <h1>📊 Panel de Control</h1>
+        <div class="cards">
+          <div class="card">
+            <h2>👥 Usuarios Registrados</h2>
+            <p>128</p>
+          </div>
+          <div class="card">
+            <h2>🔮 Predicciones Totales</h2>
+            <p>356</p>
+          </div>
+          <div class="card">
+            <h2>🌍 Destinos Populares</h2>
+            <p>Lima - Cusco<br />Arequipa - Santiago</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Usuarios -->
+      <section id="usuarios" class="section">
+        <h1>👤 Lista de Usuarios</h1>
+        <table>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Fecha Registro</th>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>Juan Pérez</td>
+            <td>juanperez@gmail.com</td>
+            <td>2025-09-28</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Ana López</td>
+            <td>analopez@gmail.com</td>
+            <td>2025-10-03</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- Predicciones -->
+      <section id="predicciones" class="section">
+        <h1>📈 Historial de Predicciones</h1>
+        <table>
+          <tr>
+            <th>Usuario</th>
+            <th>Origen</th>
+            <th>Destino</th>
+            <th>Fecha</th>
+            <th>Precio Estimado</th>
+          </tr>
+          <tr>
+            <td>Juan Pérez</td>
+            <td>Lima</td>
+            <td>Cusco</td>
+            <td>2025-10-08</td>
+            <td>S/ 230</td>
+          </tr>
+          <tr>
+            <td>Ana López</td>
+            <td>Arequipa</td>
+            <td>Lima</td>
+            <td>2025-10-07</td>
+            <td>S/ 280</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      // Función para mostrar secciones
+      function mostrarSeccion(id) {
+        document
+          .querySelectorAll(".section")
+          .forEach((sec) => sec.classList.remove("active-section"));
+        document.getElementById(id).classList.add("active-section");
+        document
+          .querySelectorAll("nav a")
+          .forEach((a) => a.classList.remove("active"));
+        event.target.classList.add("active");
+      }
+    </script>
   </body>
 </html>
