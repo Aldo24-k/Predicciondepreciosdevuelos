@@ -28,7 +28,7 @@
 
       /* Menú lateral */
       nav {
-        width: 250px;
+        width: 260px;
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
         display: flex;
@@ -51,7 +51,7 @@
         width: 80%;
         text-align: center;
         border-radius: 10px;
-        margin: 10px 0;
+        margin: 8px 0;
         background: rgba(255, 255, 255, 0.05);
         transition: all 0.3s;
       }
@@ -129,6 +129,22 @@
         background: rgba(255, 255, 255, 0.1);
       }
 
+      /* Botones */
+      button {
+        background: linear-gradient(90deg, #7209b7, #3a0ca3);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      button:hover {
+        background: linear-gradient(90deg, #b5179e, #7209b7);
+        box-shadow: 0 0 10px #b5179e;
+      }
+
       /* Ocultar secciones */
       .section {
         display: none;
@@ -136,16 +152,30 @@
       .active-section {
         display: block;
       }
+
+      /* Scrollbar personalizado */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #9d4edd;
+        border-radius: 4px;
+      }
     </style>
   </head>
   <body>
     <nav>
-      <h2>🛫 Agente Panel</h2>
+      <h2>🛫 Panel Agente</h2>
       <a href="#" class="active" onclick="mostrarSeccion('dashboard')"
         >Dashboard</a
       >
       <a href="#" onclick="mostrarSeccion('usuarios')">Usuarios</a>
       <a href="#" onclick="mostrarSeccion('predicciones')">Predicciones</a>
+      <a href="#" onclick="mostrarSeccion('vuelos')">Gestión de Vuelos</a>
+      <a href="#" onclick="mostrarSeccion('actividad')"
+        >Registro de Actividad</a
+      >
     </nav>
 
     <main>
@@ -220,10 +250,68 @@
           </tr>
         </table>
       </section>
+
+      <!-- Gestión de Vuelos -->
+      <section id="vuelos" class="section">
+        <h1>✈️ Gestión de Vuelos</h1>
+        <table>
+          <tr>
+            <th>ID Vuelo</th>
+            <th>Origen</th>
+            <th>Destino</th>
+            <th>Precio Base</th>
+            <th>Acción</th>
+          </tr>
+          <tr>
+            <td>101</td>
+            <td>Lima</td>
+            <td>Arequipa</td>
+            <td>S/ 250</td>
+            <td><button>Editar</button></td>
+          </tr>
+          <tr>
+            <td>102</td>
+            <td>Trujillo</td>
+            <td>Lima</td>
+            <td>S/ 180</td>
+            <td><button>Editar</button></td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- Registro de Actividad -->
+      <section id="actividad" class="section">
+        <h1>🕓 Registro de Actividad</h1>
+        <table>
+          <tr>
+            <th>Fecha</th>
+            <th>Agente</th>
+            <th>Acción</th>
+            <th>Resultado</th>
+          </tr>
+          <tr>
+            <td>2025-10-09</td>
+            <td>Agente Luis</td>
+            <td>Revisó predicciones</td>
+            <td>Éxito</td>
+          </tr>
+          <tr>
+            <td>2025-10-08</td>
+            <td>Agente María</td>
+            <td>Actualizó vuelo</td>
+            <td>Completado</td>
+          </tr>
+          <tr>
+            <td>2025-10-07</td>
+            <td>Agente Luis</td>
+            <td>Inició sesión</td>
+            <td>Correcto</td>
+          </tr>
+        </table>
+      </section>
     </main>
 
     <script>
-      // Función para mostrar secciones
       function mostrarSeccion(id) {
         document
           .querySelectorAll(".section")
