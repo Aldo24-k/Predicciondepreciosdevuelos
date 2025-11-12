@@ -1,8 +1,10 @@
-name: Ejecutar App
+name: Ejecutar Flask - Predicción de precios de vuelos
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]   # Ejecuta el workflow al hacer push en la rama main
+  pull_request:
+    branches: [ main ]   # También cuando se crea un pull request hacia main
 
 jobs:
   build:
@@ -20,13 +22,22 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run app
-        run: python ./app.py
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Commit and Push changes
+      - name: Ejecutar aplicación Flask
+        env:
+          FLASK_APP: app.py
+          FLASK_ENV: production
+        run: |
+          python app.py
+
+      - name: Commit y Push de cambios (si aplica)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Ejecutar app.py y actualizar resultados
+          commit_message: Ejecutar Flask app y actualizar datos
           commit_user_name: Aldo Holgado [GitHub Actions]
           commit_user_email: aldoholgado26@gmail.com
           commit_author: aldoholgado
