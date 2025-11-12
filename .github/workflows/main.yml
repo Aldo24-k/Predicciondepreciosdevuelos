@@ -1,0 +1,30 @@
+name: Verificar commits y autor
+
+on:
+  push:
+    branches: [ main ]  # Se ejecuta cuando haces push a la rama main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ver repositorio
+        uses: actions/checkout@v4
+
+      - name: Mostrar información del último commit
+        run: |
+          echo "📜 Información del último commit:"
+          echo "--------------------------------------"
+          git log -1 --pretty=format:"🧑 Autor: %an%n📧 Email: %ae%n🕓 Fecha: %ad%n💬 Mensaje: %s"
+          echo "--------------------------------------"
+
+      - name: Mostrar últimos 3 commits
+        run: |
+          echo "🪶 Últimos 3 commits en el repositorio:"
+          git log -3 --oneline
+
+      - name: Mostrar archivos del proyecto
+        run: |
+          echo "📁 Archivos del proyecto:"
+          ls -l
