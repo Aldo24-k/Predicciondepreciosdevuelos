@@ -1,0 +1,23 @@
+name: Verificar commits y probar flujo básico
+
+on:
+  push:
+    branches: [ main ]  # Se ejecuta cada vez que hagas push a main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ver repositorio
+        uses: actions/checkout@v4
+
+      - name: Mostrar últimos commits
+        run: |
+          echo "🪶 Últimos commits en el repositorio:"
+          git log -3 --oneline
+
+      - name: Mostrar contenido del proyecto
+        run: |
+          echo "📁 Archivos del proyecto:"
+          ls -l
