@@ -1,4 +1,4 @@
-name: Stats
+name: Ejecutar App
 
 on:
   push:
@@ -20,13 +20,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run script
-        run: python ./Roadmap/app.py
+      - name: Run app
+        run: python ./app.py
 
       - name: Commit and Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Update stats
+          commit_message: Ejecutar app.py y actualizar resultados
           commit_user_name: Aldo Holgado [GitHub Actions]
-          commit_user_email: aldoholgado24@gmail.com
-          commit_author: Aldo
+          commit_user_email: aldoholgado26@gmail.com
+          commit_author: aldoholgado
