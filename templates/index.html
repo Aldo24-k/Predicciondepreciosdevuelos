@@ -257,51 +257,80 @@
       </div>
 
       <!-- SECCIÓN PERFIL -->
-      <div id="perfil" class="section">
-        <div class="predictor-card" style="max-width: 500px">
-          <h2><i class="fas fa-user"></i> Mi Perfil</h2>
-          <div id="perfil-info" style="margin-top: 20px">
-            <div class="form-group">
-              <label>Usuario</label>
-              <div
-                style="padding: 12px; background: #f8f9fa; border-radius: 8px"
-                id="perfil-usuario"
-              >
-                -
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <div
-                style="padding: 12px; background: #f8f9fa; border-radius: 8px"
-                id="perfil-email"
-              >
-                -
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Miembro desde</label>
-              <div
-                style="padding: 12px; background: #f8f9fa; border-radius: 8px"
-                id="perfil-fecha"
-              >
-                -
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Total de Predicciones</label>
-              <div
-                style="padding: 12px; background: #f8f9fa; border-radius: 8px"
-                id="perfil-total"
-              >
-                -
-              </div>
-            </div>
-          </div>
-        </div>
+<!-- SECCIÓN PERFIL -->
+<div id="perfil" class="section">
+  <div class="predictor-card">
+    <h2><i class="fas fa-user"></i> Mi Perfil</h2>
+    
+    <!-- Información de usuario -->
+    <div id="perfil-info" style="margin-top: 20px">
+      <div class="form-group">
+        <label>Usuario</label>
+        <input type="text" class="form-control" id="perfil-usuario-input" disabled>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="form-control" id="perfil-email-input" disabled>
+      </div>
+      <div class="form-group">
+        <label>Miembro desde</label>
+        <div style="padding: 12px; background: #f8f9fa; border-radius: 8px" id="perfil-fecha">-</div>
+      </div>
+      <div class="form-group">
+        <label>Total de Predicciones</label>
+        <div style="padding: 12px; background: #f8f9fa; border-radius: 8px" id="perfil-total">-</div>
+      </div>
+      
+      <!-- Botones de acción -->
+      <div class="perfil-actions">
+        <button class="btn-edit" onclick="habilitarEdicion()">
+          <i class="fas fa-edit"></i> Editar Información
+        </button>
+        <button class="btn-edit" onclick="mostrarCambiarContrasena()">
+          <i class="fas fa-key"></i> Cambiar Contraseña
+        </button>
+      </div>
+      
+      <!-- Botones para guardar/cancelar (ocultos inicialmente) -->
+      <div class="perfil-save-actions" id="perfil-save-actions" style="display: none">
+        <button class="btn-save" onclick="guardarPerfil()">
+          <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+        <button class="btn-cancel" onclick="cancelarEdicion()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
       </div>
     </div>
-
+    
+    <!-- Formulario de cambio de contraseña (oculto inicialmente) -->
+    <div id="cambiar-contrasena-form" style="display: none; margin-top: 30px">
+      <h3 style="color: var(--dark); margin-bottom: 20px">
+        <i class="fas fa-lock"></i> Cambiar Contraseña
+      </h3>
+      <div class="form-group">
+        <label>Contraseña Actual</label>
+        <input type="password" class="form-control" id="contrasena-actual" required>
+      </div>
+      <div class="form-group">
+        <label>Nueva Contraseña</label>
+        <input type="password" class="form-control" id="nueva-contrasena" minlength="6" required>
+        <small style="color: #999">Mínimo 6 caracteres</small>
+      </div>
+      <div class="form-group">
+        <label>Confirmar Nueva Contraseña</label>
+        <input type="password" class="form-control" id="confirmar-nueva-contrasena" required>
+      </div>
+      <div class="perfil-save-actions">
+        <button class="btn-save" onclick="cambiarContrasena()">
+          <i class="fas fa-check"></i> Cambiar Contraseña
+        </button>
+        <button class="btn-cancel" onclick="ocultarCambiarContrasena()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script>
@@ -517,22 +546,126 @@
         }
       }
 
+
       async function cargarPerfil() {
         try {
           const res = await fetch("/api/perfil");
           const perfil = await res.json();
-
-          document.getElementById("perfil-usuario").textContent =
-            perfil.usuario;
-          document.getElementById("perfil-email").textContent = perfil.email;
-          document.getElementById("perfil-fecha").textContent =
-            perfil.fecha_creacion;
-          document.getElementById("perfil-total").textContent =
-            perfil.total_predicciones + " predicciones";
+      
+          document.getElementById("perfil-usuario-input").value = perfil.usuario;
+          document.getElementById("perfil-email-input").value = perfil.email;
+          document.getElementById("perfil-fecha").textContent = perfil.fecha_creacion;
+          document.getElementById("perfil-total").textContent = perfil.total_predicciones + " predicciones";
         } catch (e) {
           console.error("Error cargando perfil:", e);
         }
       }
+      
+      // ============ FUNCIONES NUEVAS DE EDICIÓN ============
+      
+      function habilitarEdicion() {
+        document.getElementById("perfil-usuario-input").disabled = false;
+        document.getElementById("perfil-email-input").disabled = false;
+        document.querySelector(".perfil-actions").style.display = "none";
+        document.getElementById("perfil-save-actions").style.display = "flex";
+      }
+      
+      function cancelarEdicion() {
+        document.getElementById("perfil-usuario-input").disabled = true;
+        document.getElementById("perfil-email-input").disabled = true;
+        document.querySelector(".perfil-actions").style.display = "flex";
+        document.getElementById("perfil-save-actions").style.display = "none";
+        cargarPerfil(); // Recargar datos originales
+      }
+      
+      async function guardarPerfil() {
+        const usuario = document.getElementById("perfil-usuario-input").value.trim();
+        const email = document.getElementById("perfil-email-input").value.trim();
+      
+        if (!usuario || !email) {
+          alert("Todos los campos son obligatorios");
+          return;
+        }
+      
+        try {
+          const res = await fetch("/api/perfil/actualizar", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ usuario, email })
+          });
+      
+          const result = await res.json();
+      
+          if (result.exito) {
+            alert("✓ " + result.mensaje);
+            cancelarEdicion();
+            cargarPerfil();
+          } else {
+            alert("✗ " + result.error);
+          }
+        } catch (e) {
+          alert("Error al actualizar perfil: " + e);
+        }
+      }
+      
+      function mostrarCambiarContrasena() {
+        document.getElementById("perfil-info").style.display = "none";
+        document.getElementById("cambiar-contrasena-form").style.display = "block";
+      }
+      
+      function ocultarCambiarContrasena() {
+        document.getElementById("perfil-info").style.display = "block";
+        document.getElementById("cambiar-contrasena-form").style.display = "none";
+        // Limpiar campos
+        document.getElementById("contrasena-actual").value = "";
+        document.getElementById("nueva-contrasena").value = "";
+        document.getElementById("confirmar-nueva-contrasena").value = "";
+      }
+      
+      async function cambiarContrasena() {
+        const contrasena_actual = document.getElementById("contrasena-actual").value;
+        const nueva_contrasena = document.getElementById("nueva-contrasena").value;
+        const confirmar_contrasena = document.getElementById("confirmar-nueva-contrasena").value;
+      
+        if (!contrasena_actual || !nueva_contrasena || !confirmar_contrasena) {
+          alert("Todos los campos son obligatorios");
+          return;
+        }
+      
+        if (nueva_contrasena.length < 6) {
+          alert("La nueva contraseña debe tener al menos 6 caracteres");
+          return;
+        }
+      
+        if (nueva_contrasena !== confirmar_contrasena) {
+          alert("Las contraseñas no coinciden");
+          return;
+        }
+      
+        try {
+          const res = await fetch("/api/perfil/cambiar-contrasena", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contrasena_actual,
+              nueva_contrasena,
+              confirmar_contrasena
+            })
+          });
+      
+          const result = await res.json();
+      
+          if (result.exito) {
+            alert("✓ " + result.mensaje);
+            ocultarCambiarContrasena();
+          } else {
+            alert("✗ " + result.error);
+          }
+        } catch (e) {
+          alert("Error al cambiar contraseña: " + e);
+        }
+      }
     </script>
+    
   </body>
 </html>
