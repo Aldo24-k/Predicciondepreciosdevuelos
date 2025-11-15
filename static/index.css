@@ -339,3 +339,88 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* 🔹 PERFIL - Estilos de edición */
+.perfil-actions, .perfil-save-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+  flex-wrap: wrap;
+}
+
+.btn-edit, .btn-save, .btn-cancel {
+  flex: 1;
+  min-width: 180px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-edit {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  color: #fff;
+}
+
+.btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+}
+
+.btn-save {
+  background: linear-gradient(90deg, var(--success), #059669);
+  color: #fff;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+}
+
+.btn-cancel {
+  background: linear-gradient(90deg, #6b7280, #4b5563);
+  color: #fff;
+}
+
+.btn-cancel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4);
+}
+
+#perfil .form-control:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+#perfil .form-control:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--primary);
+}
+
+#cambiar-contrasena-form {
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+}
+
+#cambiar-contrasena-form h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* Responsive para botones de perfil */
+@media (max-width: 768px) {
+  .perfil-actions, .perfil-save-actions {
+    flex-direction: column;
+  }
+  
+  .btn-edit, .btn-save, .btn-cancel {
+    min-width: 100%;
+  }
+}

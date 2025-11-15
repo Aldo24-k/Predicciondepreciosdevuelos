@@ -359,7 +359,102 @@ def perfil():
         'fecha_creacion': usuario.fecha_creacion.strftime('%Y-%m-%d'),
         'total_predicciones': predicciones
     })
+# ============ CÓDIGO NUEVO A AGREGAR ============
 
+@app.route('/api/perfil/actualizar', methods=['PUT'])
+@login_requerido
+def actualizar_perfil():
+    """Actualiza los datos del perfil del usuario"""
+    usuario_id = session.get('usuario_id')
+    usuario = Usuario.query.get(usuario_id)
+    
+    try:
+        datos = request.json
+        
+        # Validar datos
+        nuevo_usuario = datos.get('usuario', '').strip()
+        nuevo_email = datos.get('email', '').strip()
+        
+        if not nuevo_usuario or not nuevo_email:
+            return jsonify({'exito': False, 'error': 'Todos los campos son obligatorios'}), 400
+        
+        # Verificar si el nuevo usuario ya existe (excepto el actual)
+        if nuevo_usuario != usuario.usuario:
+            existe_usuario = Usuario.query.filter_by(usuario=nuevo_usuario).first()
+            if existe_usuario:
+                return jsonify({'exito': False, 'error': 'El nombre de usuario ya está en uso'}), 400
+        
+        # Verificar si el nuevo email ya existe (excepto el actual)
+        if nuevo_email != usuario.email:
+            existe_email = Usuario.query.filter_by(email=nuevo_email).first()
+            if existe_email:
+                return jsonify({'exito': False, 'error': 'El email ya está registrado'}), 400
+        
+        # Actualizar datos
+        usuario.usuario = nuevo_usuario
+        usuario.email = nuevo_email
+        
+        db.session.commit()
+        
+        # Actualizar sesión
+        session['usuario'] = nuevo_usuario
+        session['email'] = nuevo_email
+        
+        return jsonify({
+            'exito': True,
+            'mensaje': 'Perfil actualizado exitosamente',
+            'usuario': nuevo_usuario,
+            'email': nuevo_email
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'exito': False, 'error': str(e)}), 500
+
+@app.route('/api/perfil/cambiar-contrasena', methods=['PUT'])
+@login_requerido
+def cambiar_contrasena():
+    """Cambia la contraseña del usuario"""
+    usuario_id = session.get('usuario_id')
+    usuario = Usuario.query.get(usuario_id)
+    
+    try:
+        datos = request.json
+        
+        contrasena_actual = datos.get('contrasena_actual', '')
+        nueva_contrasena = datos.get('nueva_contrasena', '')
+        confirmar_contrasena = datos.get('confirmar_contrasena', '')
+        
+        # Validaciones
+        if not contrasena_actual or not nueva_contrasena or not confirmar_contrasena:
+            return jsonify({'exito': False, 'error': 'Todos los campos son obligatorios'}), 400
+        
+        # Verificar contraseña actual
+        if not usuario.check_password(contrasena_actual):
+            return jsonify({'exito': False, 'error': 'La contraseña actual es incorrecta'}), 400
+        
+        # Verificar longitud de nueva contraseña
+        if len(nueva_contrasena) < 6:
+            return jsonify({'exito': False, 'error': 'La nueva contraseña debe tener al menos 6 caracteres'}), 400
+        
+        # Verificar que las contraseñas coincidan
+        if nueva_contrasena != confirmar_contrasena:
+            return jsonify({'exito': False, 'error': 'Las contraseñas no coinciden'}), 400
+        
+        # Actualizar contraseña
+        usuario.set_password(nueva_contrasena)
+        db.session.commit()
+        
+        return jsonify({
+            'exito': True,
+            'mensaje': 'Contraseña cambiada exitosamente'
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'exito': False, 'error': str(e)}), 500
+
+# ============ FIN DEL CÓDIGO NUEVO ============
 # ========== MANEJO DE ERRORES ==========
 @app.errorhandler(404)
 def no_encontrado(error):
