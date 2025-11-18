@@ -227,35 +227,43 @@
           <canvas id="chartPrecios"></canvas>
         </div>
       </div>
+<!-- SECCIÓN HISTORIAL -->
+<div id="historial" class="section">
+  <h2 style="margin-bottom: 25px; color: var(--dark)">
+    <i class="fas fa-history"></i> Historial de Predicciones
+  </h2>
 
-      <!-- SECCIÓN HISTORIAL -->
-      <div id="historial" class="section">
-        <h2 style="margin-bottom: 25px; color: var(--dark)">
-          <i class="fas fa-history"></i> Historial de Predicciones
-        </h2>
+  <div class="historial-table">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Ruta</th>
+          <th>Aerolínea</th>
+          <th>Precio</th>
+          <th>Duración</th>
+        </tr>
+      </thead>
+      <tbody id="historial-body">
+        <tr>
+          <td colspan="5" style="text-align: center; color: #999">
+            Cargando...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-        <div class="historial-table">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Ruta</th>
-                <th>Aerolínea</th>
-                <th>Precio</th>
-                <th>Duración</th>
-              </tr>
-            </thead>
-            <tbody id="historial-body">
-              <tr>
-                <td colspan="5" style="text-align: center; color: #999">
-                  Cargando...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
+  <!-- Botones de exportación -->
+  <div class="export-buttons">
+    <button class="btn-export btn-excel" onclick="exportarExcel()">
+      <i class="fas fa-file-excel"></i> Exportar a Excel
+    </button>
+    <button class="btn-export btn-pdf" onclick="exportarPDF()">
+      <i class="fas fa-file-pdf"></i> Exportar a PDF
+    </button>
+  </div>
+</div>
       <!-- SECCIÓN PERFIL -->
 <!-- SECCIÓN PERFIL -->
 <div id="perfil" class="section">
@@ -429,6 +437,12 @@
               document.getElementById("resultado-fecha").textContent =
                 result.fecha;
               document.getElementById("resultado").classList.add("show");
+
+              document.getElementById("formulario").reset();
+            
+            // Restablecer fecha mínima
+            const hoy = new Date().toISOString().split("T")[0];
+            document.getElementById("fecha").min = hoy;
             } else {
               alert("Error: " + result.error);
             }
@@ -665,6 +679,64 @@
           alert("Error al cambiar contraseña: " + e);
         }
       }
+// ============ FUNCIONES DE EXPORTACIÓN ============
+
+async function exportarExcel() {
+  try {
+    const response = await fetch('/api/historial/exportar-excel');
+    
+    if (!response.ok) {
+      const error = await response.json();
+      alert('Error: ' + error.error);
+      return;
+    }
+    
+    // Descargar archivo
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `historial_${new Date().getTime()}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    alert('✓ Excel exportado exitosamente');
+  } catch (e) {
+    alert('Error al exportar Excel: ' + e);
+    console.error(e);
+  }
+}
+
+async function exportarPDF() {
+  try {
+    const response = await fetch('/api/historial/exportar-pdf');
+    
+    if (!response.ok) {
+      const error = await response.json();
+      alert('Error: ' + error.error);
+      return;
+    }
+    
+    // Descargar archivo
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `historial_${new Date().getTime()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    alert('✓ PDF exportado exitosamente');
+  } catch (e) {
+    alert('Error al exportar PDF: ' + e);
+    console.error(e);
+  }
+}
+      
     </script>
     
   </body>

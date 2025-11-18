@@ -424,3 +424,61 @@
     min-width: 100%;
   }
 }
+
+/* 📄 BOTONES DE EXPORTACIÓN */
+.export-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-export {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  min-width: 180px;
+  justify-content: center;
+}
+
+.btn-excel {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.btn-excel:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-pdf {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.btn-pdf:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-export i {
+  font-size: 1.1rem;
+}
+
+/* Responsive exportación */
+@media (max-width: 768px) {
+  .export-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-export {
+    width: 100%;
+  }
+}
+
