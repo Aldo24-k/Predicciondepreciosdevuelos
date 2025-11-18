@@ -9,6 +9,17 @@ import os
 from datetime import datetime
 import io
 from functools import wraps
+from flask import send_file
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from io import BytesIO
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+
+
 
 # ========== CONFIGURACIÓN DE FLASK ==========
 app = Flask(__name__)
@@ -96,6 +107,7 @@ def cargar_datos_cache():
         datos_cache = pd.read_excel('datos_vuelos_peru.xlsx')
     
     return datos_cache is not None
+    
 
 # ========== RUTAS DE AUTENTICACIÓN ==========
 @app.route('/registro', methods=['GET', 'POST'])
@@ -359,7 +371,7 @@ def perfil():
         'fecha_creacion': usuario.fecha_creacion.strftime('%Y-%m-%d'),
         'total_predicciones': predicciones
     })
-# ============ CÓDIGO NUEVO A AGREGAR ============
+
 
 @app.route('/api/perfil/actualizar', methods=['PUT'])
 @login_requerido
@@ -453,8 +465,266 @@ def cambiar_contrasena():
     except Exception as e:
         db.session.rollback()
         return jsonify({'exito': False, 'error': str(e)}), 500
+        # ========== RUTAS DE EXPORTACIÓN ==========
 
-# ============ FIN DEL CÓDIGO NUEVO ============
+@app.route('/api/historial/exportar-excel', methods=['GET'])
+@login_requerido
+def exportar_excel():
+    """Exporta el historial de predicciones a Excel"""
+    usuario_id = session.get('usuario_id')
+    usuario = Usuario.query.get(usuario_id)
+    predicciones = Prediccion.query.filter_by(usuario_id=usuario_id)\
+                                   .order_by(Prediccion.fecha_prediccion.desc())\
+                                   .all()
+    
+    if not predicciones:
+        return jsonify({'error': 'No hay predicciones para exportar'}), 404
+    
+    try:
+        # Crear workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Historial de Predicciones"
+        
+        # Estilos
+        header_fill = PatternFill(start_color="667EEA", end_color="667EEA", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=12)
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Título
+        ws.merge_cells('A1:H1')
+        titulo = ws['A1']
+        titulo.value = f"Historial de Predicciones - {usuario.usuario}"
+        titulo.font = Font(bold=True, size=16, color="667EEA")
+        titulo.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Información del usuario
+        ws.merge_cells('A2:H2')
+        info = ws['A2']
+        info.value = f"Generado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total: {len(predicciones)} predicciones"
+        info.font = Font(size=10, italic=True)
+        info.alignment = Alignment(horizontal='center')
+        
+        # Espacio
+        ws.append([])
+        
+        # Encabezados
+        headers = ['#', 'Fecha Viaje', 'Aerolínea', 'Origen', 'Destino', 'Duración (h)', 'Escalas', 'Precio (S/)']
+        ws.append(headers)
+        
+        # Aplicar estilo a encabezados
+        for cell in ws[4]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = border
+        
+        # Datos
+        for idx, pred in enumerate(predicciones, 1):
+            ws.append([
+                idx,
+                pred.fecha_viaje.strftime('%Y-%m-%d'),
+                pred.aerolinea,
+                pred.origen,
+                pred.destino,
+                pred.duracion,
+                pred.escalas,
+                pred.precio_predicho
+            ])
+            
+            # Aplicar bordes a todas las celdas
+            for cell in ws[ws.max_row]:
+                cell.border = border
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Ajustar anchos de columna
+        column_widths = [5, 15, 20, 10, 10, 12, 10, 12]
+        for i, width in enumerate(column_widths, 1):
+            ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = width
+        
+        # Estadísticas al final
+        ws.append([])
+        precios = [p.precio_predicho for p in predicciones]
+        ws.append(['ESTADÍSTICAS', '', '', '', '', '', '', ''])
+        ws.append(['Precio Promedio:', '', '', '', '', '', '', f"S/ {sum(precios)/len(precios):.2f}"])
+        ws.append(['Precio Mínimo:', '', '', '', '', '', '', f"S/ {min(precios):.2f}"])
+        ws.append(['Precio Máximo:', '', '', '', '', '', '', f"S/ {max(precios):.2f}"])
+        
+        # Estilo para estadísticas
+        for row in range(ws.max_row - 3, ws.max_row + 1):
+            ws[f'A{row}'].font = Font(bold=True)
+            ws[f'H{row}'].font = Font(bold=True, color="667EEA")
+        
+        # Guardar en memoria
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        # Nombre del archivo
+        filename = f"historial_{usuario.usuario}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/historial/exportar-pdf', methods=['GET'])
+@login_requerido
+def exportar_pdf():
+    """Exporta el historial de predicciones a PDF"""
+    usuario_id = session.get('usuario_id')
+    usuario = Usuario.query.get(usuario_id)
+    predicciones = Prediccion.query.filter_by(usuario_id=usuario_id)\
+                                   .order_by(Prediccion.fecha_prediccion.desc())\
+                                   .all()
+    
+    if not predicciones:
+        return jsonify({'error': 'No hay predicciones para exportar'}), 404
+    
+    try:
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+        elements = []
+        
+        # Estilos
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=20,
+            textColor=colors.HexColor('#667EEA'),
+            spaceAfter=12,
+            alignment=1  # Centrado
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'CustomSubtitle',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.grey,
+            spaceAfter=20,
+            alignment=1
+        )
+        
+        # Título
+        titulo = Paragraph(f"<b>Historial de Predicciones</b><br/>{usuario.usuario}", title_style)
+        elements.append(titulo)
+        
+        # Información
+        info_text = f"Generado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total: {len(predicciones)} predicciones"
+        info = Paragraph(info_text, subtitle_style)
+        elements.append(info)
+        elements.append(Spacer(1, 0.2*inch))
+        
+        # Tabla de datos
+        data = [['#', 'Fecha', 'Aerolínea', 'Ruta', 'Duración', 'Escalas', 'Precio']]
+        
+        for idx, pred in enumerate(predicciones, 1):
+            data.append([
+                str(idx),
+                pred.fecha_viaje.strftime('%Y-%m-%d'),
+                pred.aerolinea[:15],  # Truncar si es muy largo
+                f"{pred.origen}-{pred.destino}",
+                f"{pred.duracion}h",
+                str(pred.escalas),
+                f"S/ {pred.precio_predicho:.2f}"
+            ])
+        
+        # Crear tabla
+        table = Table(data, colWidths=[0.5*inch, 1*inch, 1.5*inch, 1*inch, 0.8*inch, 0.7*inch, 1*inch])
+        
+        # Estilo de tabla
+        table.setStyle(TableStyle([
+            # Encabezado
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#667EEA')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('TOPPADDING', (0, 0), (-1, 0), 12),
+            
+            # Contenido
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F7F7F7')]),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 0.3*inch))
+        
+        # Estadísticas
+        precios = [p.precio_predicho for p in predicciones]
+        stats_data = [
+            ['ESTADÍSTICAS', ''],
+            ['Precio Promedio:', f"S/ {sum(precios)/len(precios):.2f}"],
+            ['Precio Mínimo:', f"S/ {min(precios):.2f}"],
+            ['Precio Máximo:', f"S/ {max(precios):.2f}"],
+            ['Duración Promedio:', f"{sum(p.duracion for p in predicciones)/len(predicciones):.1f}h"],
+            ['Total de Escalas:', f"{sum(p.escalas for p in predicciones)}"]
+        ]
+        
+        stats_table = Table(stats_data, colWidths=[2.5*inch, 1.5*inch])
+        stats_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#667EEA')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (1, 1), (1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        
+        elements.append(stats_table)
+        
+        # Pie de página
+        elements.append(Spacer(1, 0.3*inch))
+        footer = Paragraph(
+            f"<i>Documento generado por AeroPredict © {datetime.now().year}</i>",
+            ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=1)
+        )
+        elements.append(footer)
+        
+        # Construir PDF
+        doc.build(elements)
+        buffer.seek(0)
+        
+        # Nombre del archivo
+        filename = f"historial_{usuario.usuario}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        
+        return send_file(
+            buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ========== MANEJO DE ERRORES ==========
 @app.errorhandler(404)
 def no_encontrado(error):
