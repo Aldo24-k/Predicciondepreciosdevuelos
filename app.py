@@ -19,6 +19,8 @@ from io import BytesIO
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 
+from datetime import timedelta
+import re
 
 
 # ========== CONFIGURACIÓN DE FLASK ==========
@@ -724,6 +726,746 @@ def exportar_pdf():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# ========== RUTA DEL CHAT BOT MEJORADO ==========
+@app.route('/api/chat-bot', methods=['POST'])
+@login_requerido
+def chat_bot():
+    """Procesa mensajes del chat bot con IA conversacional mejorada"""
+    try:
+        data = request.json
+        mensaje_usuario = data.get('mensaje', '')
+        contexto = data.get('contexto', {})
+        conversacion = data.get('conversacion', [])
+        
+        if not mensaje_usuario:
+            return jsonify({'exito': False, 'error': 'Mensaje vacío'}), 400
+        
+        # Generar respuesta inteligente con contexto conversacional
+        respuesta, cerrar_chat = generar_respuesta_bot_mejorada(mensaje_usuario, contexto, conversacion)
+        
+        return jsonify({
+            'exito': True,
+            'respuesta': respuesta,
+            'cerrar_chat': cerrar_chat  # Nuevo: indica si debe cerrarse automáticamente
+        })
+    
+    except Exception as e:
+        print(f"Error en chat_bot: {str(e)}")
+        return jsonify({
+            'exito': False,
+            'error': 'Error procesando mensaje'
+        }), 500
+
+
+def detectar_intencion(mensaje):
+    """Detecta la intención del usuario usando IA"""
+    mensaje_lower = mensaje.lower()
+    
+    # Saludos
+    saludos = ['hola', 'hey', 'buenos dias', 'buenas tardes', 'buenas noches', 'que tal', 'como estas', 'como estás', 'saludos']
+    if any(saludo in mensaje_lower for saludo in saludos):
+        return 'saludo'
+    
+    # Despedidas y agradecimientos
+    despedidas = ['gracias', 'muchas gracias', 'perfecto', 'excelente', 'ok', 'vale', 'adios', 'adiós', 'chao', 'bye', 'hasta luego', 'nos vemos', 'listo', 'entendido', 'ya esta', 'ya está']
+    if any(despedida in mensaje_lower for despedida in despedidas):
+        return 'despedida'
+    
+    # Análisis de predicción
+    if any(palabra in mensaje_lower for palabra in ['analiza', 'analizar', 'última', 'ultima', 'predicción', 'prediccion', 'resultado', 'mi vuelo', 'mi precio']):
+        return 'analizar_prediccion'
+    
+    # Ayuda con predicción
+    if any(palabra in mensaje_lower for palabra in ['ayuda', 'ayudar', 'ayudame', 'ayúdame', 'necesito', 'quiero', 'puedes']):
+        if any(palabra in mensaje_lower for palabra in ['predicción', 'prediccion', 'precio', 'vuelo', 'viajar', 'comprar']):
+            return 'ayuda_prediccion'
+    
+    # Temporada
+    if 'temporada' in mensaje_lower:
+        return 'temporada'
+    
+    # Comparar aerolíneas
+    if 'compar' in mensaje_lower and ('aerolínea' in mensaje_lower or 'aerolinea' in mensaje_lower):
+        return 'comparar_aerolineas'
+    
+    # Cuándo comprar
+    if any(palabra in mensaje_lower for palabra in ['cuándo', 'cuando', 'mejor momento', 'cuando comprar', 'cuándo comprar']):
+        return 'cuando_comprar'
+    
+    # Escalas
+    if 'escala' in mensaje_lower:
+        return 'escalas'
+    
+    # Días
+    if any(palabra in mensaje_lower for palabra in ['día', 'dia', 'mejor dia', 'mejor día']):
+        return 'dias_semana'
+    
+    # Consejos
+    if any(palabra in mensaje_lower for palabra in ['consejo', 'tip', 'recomendación', 'recomendacion', 'sugerencia']):
+        return 'consejos'
+    
+    # Pregunta genérica
+    return 'generico'
+
+
+def generar_respuesta_bot_mejorada(mensaje, contexto, conversacion):
+    """Genera respuestas inteligentes con IA conversacional mejorada"""
+    
+    intencion = detectar_intencion(mensaje)
+    cerrar_chat = False  # Por defecto no se cierra
+    
+    ultima_pred = contexto.get('ultimaPrediccion') if contexto else None
+    stats = contexto.get('estadisticas') if contexto else None
+    
+    # ==================== SALUDOS ====================
+    if intencion == 'saludo':
+        if ultima_pred:
+            return f"""👋 <strong>¡Hola! Encantado de ayudarte</strong><br><br>
+Veo que acabas de hacer una predicción para <strong>{ultima_pred.get('ruta', '')}</strong> con un precio de <strong>S/ {ultima_pred.get('precio', 0):.2f}</strong>.<br><br>
+
+¿Quieres que te ayude con alguna de estas cosas?<br><br>
+
+<div style="background: #f0f7ff; padding: 12px; border-radius: 8px; margin: 10px 0;">
+📊 <strong>"Analiza mi predicción"</strong> - Te doy un análisis completo<br><br>
+🏖️ <strong>"¿Es temporada alta?"</strong> - Te digo si es buen momento<br><br>
+💡 <strong>"Dame consejos"</strong> - Tips para ahorrar más<br><br>
+✈️ <strong>"Compara aerolíneas"</strong> - Veo si hay mejores opciones
+</div>
+
+¿En qué te ayudo? 😊""", False
+        else:
+            return """👋 <strong>¡Hola! ¿Cómo estás?</strong><br><br>
+Soy tu asistente inteligente de vuelos. Puedo ayudarte a:<br><br>
+
+✅ Analizar precios de vuelos<br>
+✅ Identificar la mejor temporada para viajar<br>
+✅ Comparar aerolíneas<br>
+✅ Darte consejos para ahorrar<br><br>
+
+<div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;">
+💡 <strong>Tip:</strong> Primero haz una predicción arriba, y luego puedo darte un análisis completo personalizado.
+</div>
+
+¿En qué te puedo ayudar? 😊""", False
+    
+    # ==================== DESPEDIDAS Y AGRADECIMIENTOS ====================
+    elif intencion == 'despedida':
+        mensaje_lower = mensaje.lower()
+        
+        # Detectar si es agradecimiento
+        if any(palabra in mensaje_lower for palabra in ['gracias', 'thank', 'excelente', 'perfecto', 'genial']):
+            cerrar_chat = True  # Se cerrará automáticamente
+            return """😊 <strong>¡De nada! Ha sido un placer ayudarte</strong><br><br>
+
+Recuerda:<br>
+✅ Compra con 30-45 días de anticipación<br>
+✅ Los martes son los mejores días<br>
+✅ Usa modo incógnito siempre<br><br>
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 8px;">
+💡 Vuelve cuando quieras, ¡estoy aquí para ayudarte! ✈️
+</div>
+
+<em style="font-size: 11px; color: #999;">Este chat se cerrará en 2 segundos...</em>""", True
+        
+        # Despedida normal
+        else:
+            cerrar_chat = True
+            return """👋 <strong>¡Hasta luego!</strong><br><br>
+
+Fue un gusto ayudarte. Recuerda que puedes volver cuando quieras.<br><br>
+
+<strong>¡Buen viaje! ✈️</strong><br><br>
+
+<em style="font-size: 11px; color: #999;">Este chat se cerrará en 2 segundos...</em>""", True
+    
+    # ==================== AYUDA CON PREDICCIÓN ====================
+    elif intencion == 'ayuda_prediccion':
+        if ultima_pred:
+            # Ya tiene una predicción, ofrecer análisis
+            return f"""🤝 <strong>¡Claro que sí! Te ayudo con tu predicción</strong><br><br>
+
+Veo que buscas viajar de <strong>{ultima_pred.get('ruta', '')}</strong> con <strong>{ultima_pred.get('aerolinea', '')}</strong>.<br><br>
+
+Te voy a dar un análisis completo ahora mismo...<br><br>
+
+<em style="font-size: 11px; color: #999;">Analizando datos...</em>""", False
+            # Luego automáticamente seguirá con el análisis
+        else:
+            return """🤝 <strong>¡Por supuesto! Te ayudo con tu predicción</strong><br><br>
+
+Para poder ayudarte mejor, primero necesito que hagas una predicción:<br><br>
+
+<div style="background: #f0f7ff; padding: 12px; border-radius: 8px; border-left: 4px solid #667eea;">
+<strong>Pasos:</strong><br>
+1️⃣ Usa el formulario de arriba<br>
+2️⃣ Selecciona tu ruta y fecha<br>
+3️⃣ Haz clic en "Calcular Precio"<br>
+4️⃣ Vuelve aquí y te doy un análisis completo 📊
+</div>
+
+Una vez tengas tu predicción, puedo decirte:<br>
+• Si el precio está alto o bajo<br>
+• Si es buen momento para comprar<br>
+• Qué aerolínea conviene más<br>
+• Tips para ahorrar más dinero<br><br>
+
+¿Quieres que te explique algo más mientras tanto? 😊""", False
+    
+    # ==================== ANÁLISIS DE PREDICCIÓN ====================
+    elif intencion == 'analizar_prediccion':
+        if not ultima_pred:
+            return """❌ <strong>Aún no tienes predicciones</strong><br><br>
+            
+Para que pueda analizar tu vuelo, primero necesitas hacer una predicción usando el formulario de arriba.<br><br>
+
+<div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;">
+<strong>💡 Cómo hacerlo:</strong><br>
+1. Completa el formulario de "Predicción de Precios"<br>
+2. Haz clic en "Calcular Precio"<br>
+3. Vuelve aquí y pídeme el análisis
+</div>
+
+¿Necesitas ayuda con algo más? 😊""", False
+        
+        precio = ultima_pred.get('precio', 0)
+        ruta = ultima_pred.get('ruta', '')
+        aerolinea = ultima_pred.get('aerolinea', '')
+        fecha = ultima_pred.get('fecha', '')
+        
+        # Análisis de precio
+        nivel_precio = "NORMAL"
+        emoji_precio = "💰"
+        comparacion = ""
+        recomendacion_precio = ""
+        
+        if stats:
+            promedio = stats.get('precio_promedio', 0)
+            if promedio > 0:
+                diferencia_pct = ((precio / promedio) - 1) * 100
+                
+                if diferencia_pct < -15:
+                    nivel_precio = "EXCELENTE"
+                    emoji_precio = "✅"
+                    comparacion = f"{abs(diferencia_pct):.1f}% más barato que el promedio"
+                    recomendacion_precio = "¡Este es un precio excelente! Te recomiendo comprar pronto antes de que suba."
+                elif diferencia_pct > 15:
+                    nivel_precio = "ELEVADO"
+                    emoji_precio = "⚠️"
+                    comparacion = f"{diferencia_pct:.1f}% más caro que el promedio"
+                    recomendacion_precio = "El precio está alto. Considera buscar otras fechas u aerolíneas."
+                else:
+                    comparacion = f"Diferencia: {diferencia_pct:+.1f}% vs promedio"
+                    recomendacion_precio = "El precio está en el rango esperado. Es una opción razonable."
+        
+        # Análisis de temporada y anticipación
+        try:
+            fecha_obj = datetime.strptime(fecha, '%Y-%m-%d')
+            mes_viaje = fecha_obj.month
+            dia_semana = fecha_obj.strftime('%A')
+            
+            # Traducir día
+            dias_es = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles', 
+                      'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo'}
+            dia_viaje = dias_es.get(dia_semana, dia_semana)
+            
+            # Temporada
+            if mes_viaje in [12, 1, 2, 7, 8]:
+                temporada = "ALTA"
+                emoji_temp = "🏖️"
+                msg_temporada = "Estás viajando en temporada alta. Los precios suelen ser 30-50% más altos."
+                color_temp = "#ff4757"
+            elif mes_viaje in [6, 9, 10, 11]:
+                temporada = "MEDIA"
+                emoji_temp = "📊"
+                msg_temporada = "Temporada media. Los precios son moderados."
+                color_temp = "#ffa502"
+            else:
+                temporada = "BAJA"
+                emoji_temp = "✨"
+                msg_temporada = "¡Excelente elección! Temporada baja significa mejores precios."
+                color_temp = "#26de81"
+            
+            # Anticipación
+            dias_anticipacion = (fecha_obj - datetime.now()).days
+            
+            if dias_anticipacion < 0:
+                anticipacion_msg = "La fecha ya pasó"
+                anticipacion_color = "#999"
+                anticipacion_consejo = ""
+            elif dias_anticipacion < 15:
+                anticipacion_msg = f"Faltan {dias_anticipacion} días - ¡URGENTE!"
+                anticipacion_color = "#ff4757"
+                anticipacion_consejo = "🚨 ¡Compra HOY! Los precios suben mucho cerca de la fecha de viaje."
+            elif dias_anticipacion <= 45:
+                anticipacion_msg = f"Faltan {dias_anticipacion} días - MOMENTO ÓPTIMO"
+                anticipacion_color = "#26de81"
+                anticipacion_consejo = "✅ ¡Perfecto! Estás en la ventana ideal de compra (15-45 días antes)."
+            elif dias_anticipacion <= 60:
+                anticipacion_msg = f"Faltan {dias_anticipacion} días"
+                anticipacion_color = "#667eea"
+                anticipacion_consejo = "📅 Buen momento para empezar a monitorear ofertas."
+            else:
+                anticipacion_msg = f"Faltan {dias_anticipacion} días"
+                anticipacion_color = "#ffa502"
+                anticipacion_consejo = "⏰ Es muy pronto. Espera 2-3 semanas más para precios más estables."
+            
+            # Análisis del día de viaje
+            dias_baratos = ['Martes', 'Miércoles']
+            dias_caros = ['Viernes', 'Domingo']
+            
+            if dia_viaje in dias_baratos:
+                dia_msg = f"✅ ¡Excelente! {dia_viaje} es uno de los días más baratos para viajar."
+            elif dia_viaje in dias_caros:
+                dia_msg = f"⚠️ {dia_viaje} suele ser más caro. Podrías ahorrar 20-30% viajando martes o miércoles."
+            else:
+                dia_msg = f"💰 {dia_viaje} tiene precios moderados."
+                
+        except:
+            temporada = "N/A"
+            emoji_temp = "❓"
+            msg_temporada = ""
+            color_temp = "#999"
+            anticipacion_msg = "No disponible"
+            anticipacion_color = "#999"
+            anticipacion_consejo = ""
+            dia_msg = ""
+        
+        # Respuesta completa con análisis detallado
+        return f"""📊 <strong>Análisis Completo de tu Vuelo</strong><br><br>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea; margin: 10px 0;">
+<strong>📍 Ruta:</strong> {ruta}<br>
+<strong>✈️ Aerolínea:</strong> {aerolinea}<br>
+<strong>📅 Fecha:</strong> {fecha} ({dia_viaje})<br>
+<strong>⏰ Anticipación:</strong> {anticipacion_msg}
+</div>
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; margin: 15px 0;">
+<div style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">
+{emoji_precio} S/ {precio:.2f}
+</div>
+<div style="font-size: 16px; margin-bottom: 5px;">
+Estado: <strong>{nivel_precio}</strong>
+</div>
+<div style="font-size: 13px; opacity: 0.9;">
+{comparacion}
+</div>
+</div>
+
+<div style="background: {color_temp}; color: white; padding: 15px; border-radius: 10px; margin: 10px 0;">
+<strong>{emoji_temp} TEMPORADA {temporada}</strong><br>
+{msg_temporada}
+</div>
+
+<div style="background: {anticipacion_color}; color: white; padding: 15px; border-radius: 10px; margin: 10px 0;">
+<strong>⏰ ANTICIPACIÓN</strong><br>
+{anticipacion_consejo}
+</div>
+
+<div style="background: #f0f7ff; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea; margin: 15px 0;">
+<strong>📅 DÍA DE VIAJE</strong><br>
+{dia_msg}
+</div>
+
+<div style="background: #fff3cd; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107; margin: 15px 0;">
+<strong>💡 MI RECOMENDACIÓN</strong><br>
+{recomendacion_precio}<br><br>
+
+<strong>Consejos adicionales:</strong><br>
+• Compara con otras aerolíneas antes de decidir<br>
+• Usa modo incógnito para buscar<br>
+• Configura alertas de precio<br>
+• Considera volar martes o miércoles si puedes
+</div>
+
+¿Necesitas más información o tienes alguna pregunta? 😊""", False
+    
+    # ==================== OTRAS INTENCIONES ====================
+    elif intencion == 'temporada':
+        return """🏖️ <strong>Temporadas de Vuelos en Perú</strong><br><br>
+
+<div style="background: linear-gradient(135deg, #ff4757 0%, #ff6348 100%); color: white; padding: 15px; border-radius: 10px; margin: 10px 0;">
+<strong>🔥 TEMPORADA ALTA</strong> (+30-50% más caro)<br>
+• 🎄 Diciembre - Febrero: Verano y vacaciones<br>
+• 🇵🇪 Julio - Agosto: Fiestas Patrias<br>
+• 🐰 Semana Santa (Marzo/Abril)
+</div>
+
+<div style="background: linear-gradient(135deg, #ffa502 0%, #ffc048 100%); color: white; padding: 15px; border-radius: 10px; margin: 10px 0;">
+<strong>📊 TEMPORADA MEDIA</strong> (Precios normales)<br>
+• Junio, Septiembre, Octubre, Noviembre
+</div>
+
+<div style="background: linear-gradient(135deg, #26de81 0%, #4ade80 100%); color: white; padding: 15px; border-radius: 10px; margin: 10px 0;">
+<strong>✅ TEMPORADA BAJA</strong> (¡Ahorra hasta 40%!)<br>
+• Marzo, Abril, Mayo
+</div>
+
+<strong>💡 Estrategia ganadora:</strong><br>
+Viaja en temporada baja + compra 30-40 días antes = <strong>Máximo ahorro</strong> 💰<br><br>
+
+¿Te gustaría saber algo más? 😊""", False
+    
+    elif intencion == 'comparar_aerolineas':
+        return """✈️ <strong>Comparación de Aerolíneas en Perú</strong><br><br>
+
+<div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #667eea;">
+<strong>🔵 LATAM Airlines</strong><br>
+✅ Más frecuencias y destinos<br>
+✅ Mejor programa de millas (LATAM Pass)<br>
+⚠️ Precios 20-30% más altos<br>
+✅ Servicio completo incluido<br>
+<em>→ Ideal para: Viajes frecuentes, acumular millas</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #ff6348;">
+<strong>🔴 Sky Airline</strong><br>
+✅ 15-25% más barato que LATAM<br>
+⚠️ Menos frecuencias<br>
+✅ Equipaje de mano incluido<br>
+⚠️ Servicio básico<br>
+<em>→ Ideal para: Presupuesto moderado</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #4ade80;">
+<strong>🟢 JetSmart</strong><br>
+✅ Low-cost, los mejores precios<br>
+⚠️ Todo se cobra extra (equipaje, asiento, etc.)<br>
+✅ Perfecto para viajes ligeros<br>
+⚠️ Menos flexibilidad<br>
+<em>→ Ideal para: Máximo ahorro, solo carry-on</em>
+</div>
+
+<div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;">
+<strong>⚠️ Importante:</strong> Siempre compara el precio TOTAL (con equipaje y extras incluidos) antes de decidir. A veces la "más barata" termina costando igual.
+</div>
+
+¿Quieres que analice cuál te conviene más? 😊""", False
+    
+    elif intencion == 'cuando_comprar':
+        return """⏰ <strong>Guía Completa: Cuándo Comprar Vuelos</strong><br><br>
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px; border-radius: 12px; margin: 15px 0;">
+<strong style="font-size: 18px;">📅 ANTICIPACIÓN ÓPTIMA</strong><br><br>
+<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin: 8px 0;">
+<strong>✅ 30-45 días antes:</strong> ¡PUNTO DULCE! 🎯<br>
+<small>El mejor momento para conseguir buenos precios</small>
+</div>
+<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin: 8px 0;">
+<strong>💰 15-29 días:</strong> Precios estables<br>
+<small>Todavía aceptable, pero menos ofertas</small>
+</div>
+<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin: 8px 0;">
+<strong>⚠️ Menos de 15 días:</strong> Precios suben 20-40%<br>
+<small>¡Evita comprar tan tarde!</small>
+</div>
+<div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin: 8px 0;">
+<strong>📈 Más de 60 días:</strong> Precios pueden fluctuar<br>
+<small>Aún no se estabilizan</small>
+</div>
+</div>
+
+<strong>📆 Mejor DÍA para COMPRAR:</strong><br>
+<div style="padding: 10px; background: #f0f7ff; border-radius: 8px; margin: 10px 0;">
+✅ <strong>Martes y Miércoles:</strong> Mejores ofertas<br>
+💰 <strong>Jueves:</strong> Precios moderados<br>
+🚫 <strong>Viernes-Domingo:</strong> Más caro (evitar)
+</div>
+
+<strong>📆 Mejor DÍA para VIAJAR:</strong><br>
+<div style="padding: 10px; background: #f0f7ff; border-radius: 8px; margin: 10px 0;">
+✅ <strong>Martes:</strong> Ahorro de 15% vs promedio<br>
+✅ <strong>Miércoles:</strong> Ahorro de 12%<br>
+⚠️ <strong>Viernes tarde:</strong> Recargo de 25%<br>
+🚫 <strong>Domingo tarde:</strong> Recargo de 30%
+</div>
+
+<strong>🕐 Mejor HORA para COMPRAR:</strong><br>
+<div style="padding: 10px; background: #f0f7ff; border-radius: 8px; margin: 10px 0;">
+✅ <strong>10 PM - 2 AM:</strong> Actualizaciones de precios<br>
+💰 <strong>Madrugada:</strong> Menos competencia<br>
+⚠️ <strong>8 AM - 12 PM:</strong> Precios más altos
+</div>
+
+<div style="background: linear-gradient(135deg, #26de81 0%, #4ade80 100%); color: white; padding: 18px; border-radius: 12px; margin: 15px 0;">
+<strong style="font-size: 16px;">🎯 FÓRMULA GANADORA:</strong><br><br>
+Compra un <strong>MARTES a las 11 PM</strong><br>
+Con <strong>30-40 DÍAS</strong> de anticipación<br>
+Para volar un <strong>MIÉRCOLES</strong><br>
+= <strong>¡AHORRO HASTA 35%!</strong> 💰✨
+</div>
+
+¿Quieres más consejos para ahorrar? 😊""", False
+    
+    elif intencion == 'escalas':
+        return """🛫 <strong>Guía Completa sobre Escalas</strong><br><br>
+
+<div style="background: linear-gradient(135deg, #26de81 0%, #4ade80 100%); color: white; padding: 18px; border-radius: 12px; margin: 12px 0;">
+<strong style="font-size: 17px;">✈️ VUELO DIRECTO</strong><br><br>
+⏱️ <strong>Tiempo:</strong> Ahorra 2-4 horas<br>
+💰 <strong>Precio:</strong> +15-30% más caro<br>
+✅ <strong>Ventajas:</strong><br>
+• Menos cansancio<br>
+• Menor riesgo de perder equipaje<br>
+• Sin preocupaciones por conexiones<br><br>
+<em>→ Ideal para: Viajes de negocios, vuelos cortos, poca flexibilidad</em>
+</div>
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px; border-radius: 12px; margin: 12px 0;">
+<strong style="font-size: 17px;">🔄 1 ESCALA</strong><br><br>
+⏱️ <strong>Tiempo:</strong> +2-3 horas de viaje total<br>
+💰 <strong>Precio:</strong> Balance precio-tiempo<br>
+✅ <strong>Ventajas:</strong><br>
+• Ahorro moderado<br>
+• Tiempo razonable<br>
+• Opción de estirar piernas<br>
+⚠️ <strong>Riesgos:</strong> Moderados<br><br>
+<em>→ Ideal para: Presupuesto moderado, flexibilidad media</em>
+</div>
+
+<div style="background: linear-gradient(135deg, #ffa502 0%, #ff6348 100%); color: white; padding: 18px; border-radius: 12px; margin: 12px 0;">
+<strong style="font-size: 17px;">🔄🔄 2+ ESCALAS</strong><br><br>
+⏱️ <strong>Tiempo:</strong> +4-6 horas (o más)<br>
+💰 <strong>Precio:</strong> Hasta 40% más barato<br>
+✅ <strong>Ventajas:</strong><br>
+• Máximo ahorro<br>
+• Posibilidad de conocer ciudades intermedias<br>
+⚠️ <strong>Riesgos:</strong> ALTOS<br>
+• Mayor probabilidad de retrasos<br>
+• Riesgo de perder conexiones<br>
+• Mayor desgaste físico<br><br>
+<em>→ Ideal para: Presupuesto ajustado, mucha flexibilidad, viajes de placer</em>
+</div>
+
+<div style="background: #fff3cd; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107; margin: 15px 0;">
+<strong>💡 RECOMENDACIONES:</strong><br><br>
+<strong>Para vuelos DOMÉSTICOS en Perú (1-2h):</strong><br>
+→ Prioriza SIEMPRE vuelos directos<br>
+→ El ahorro no justifica el tiempo extra<br><br>
+
+<strong>Para vuelos INTERNACIONALES:</strong><br>
+→ Evalúa cuánto vale tu tiempo<br>
+→ Si ahorras $200 pero pierdes 6 horas, ¿vale la pena?<br><br>
+
+<strong>Si eliges escalas:</strong><br>
+✅ Deja MÍNIMO 2 horas entre conexiones<br>
+✅ Prefiere misma aerolínea (equipaje directo)<br>
+✅ Evita escalas en aeropuertos grandes (más demoras)<br>
+⚠️ NO reserves escalas cortas (menos de 90 min)
+</div>
+
+<div style="background: #ffe5e5; padding: 15px; border-radius: 10px; border-left: 4px solid #ff4757; margin: 15px 0;">
+<strong>⚠️ EVITA ESCALAS SI:</strong><br>
+• Viajas con niños pequeños<br>
+• Llevas equipaje delicado o importante<br>
+• Tienes reuniones/eventos inmediatos al llegar<br>
+• El clima puede afectar vuelos (invierno, temporada de huracanes)
+</div>
+
+¿Te ayudo a decidir entre directo o con escalas para tu viaje? 😊""", False
+    
+    elif intencion == 'dias_semana':
+        return """📅 <strong>Guía: Mejores Días para Viajar y Ahorrar</strong><br><br>
+
+<div style="background: linear-gradient(135deg, #26de81 0%, #4ade80 100%); color: white; padding: 18px; border-radius: 12px; margin: 15px 0;">
+<strong style="font-size: 18px;">✅ DÍAS MÁS BARATOS</strong><br><br>
+<div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin: 8px 0;">
+<strong>🔵 MARTES</strong><br>
+Ahorro: <strong>-15%</strong> vs promedio<br>
+<small>El mejor día de toda la semana</small>
+</div>
+<div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin: 8px 0;">
+<strong>🔵 MIÉRCOLES</strong><br>
+Ahorro: <strong>-12%</strong> vs promedio<br>
+<small>Segundo mejor día</small>
+</div>
+<div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin: 8px 0;">
+<strong>🔵 SÁBADO (mediodía)</strong><br>
+Ahorro: <strong>-8%</strong> vs promedio<br>
+<small>Buena opción de fin de semana</small>
+</div>
+</div>
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px; border-radius: 12px; margin: 15px 0;">
+<strong style="font-size: 18px;">💰 PRECIO NORMAL</strong><br><br>
+<strong>⚪ LUNES:</strong> Precio estándar<br>
+<strong>⚪ JUEVES:</strong> Precio estándar<br>
+<strong>⚪ SÁBADO (mañana):</strong> Precio estándar
+</div>
+
+<div style="background: linear-gradient(135deg, #ff4757 0%, #ff6348 100%); color: white; padding: 18px; border-radius: 12px; margin: 15px 0;">
+<strong style="font-size: 18px;">🚫 DÍAS MÁS CAROS</strong><br><br>
+<div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin: 8px 0;">
+<strong>🔴 VIERNES (tarde/noche)</strong><br>
+Recargo: <strong>+20-30%</strong><br>
+<small>Inicio de fin de semana laboral</small>
+</div>
+<div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin: 8px 0;">
+<strong>🔴 DOMINGO (tarde/noche)</strong><br>
+Recargo: <strong>+25-35%</strong><br>
+<small>Retorno de fin de semana - EL MÁS CARO</small>
+</div>
+<div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin: 8px 0;">
+<strong>🔴 LUNES (mañana temprano)</strong><br>
+Recargo: <strong>+15-20%</strong><br>
+<small>Viajes de negocios</small>
+</div>
+</div>
+
+<div style="background: #f0f7ff; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea; margin: 15px 0;">
+<strong>📊 ¿POR QUÉ SUCEDE ESTO?</strong><br><br>
+<strong>Viernes PM:</strong> Todos salen de viaje de fin de semana<br>
+<strong>Domingo PM:</strong> Todos regresan a casa/trabajo<br>
+<strong>Lunes AM:</strong> Viajes de negocios concentrados<br>
+<strong>Martes-Miércoles:</strong> Baja demanda = mejores precios
+</div>
+
+<div style="background: linear-gradient(135deg, #26de81 0%, #4ade80 100%); color: white; padding: 18px; border-radius: 12px; margin: 15px 0;">
+<strong style="font-size: 16px;">🎯 ESTRATEGIA MAESTRA:</strong><br><br>
+1️⃣ Viaja <strong>MARTES</strong> o <strong>MIÉRCOLES</strong><br>
+2️⃣ Compra el boleto un <strong>MARTES</strong> por la noche<br>
+3️⃣ Con <strong>30-40 DÍAS</strong> de anticipación<br>
+4️⃣ En <strong>TEMPORADA BAJA</strong> (Mar-May)<br><br>
+= <strong>¡AHORRO TOTAL: HASTA 50%!</strong> 💰✨
+</div>
+
+<div style="background: #fff3cd; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107; margin: 15px 0;">
+<strong>💡 TIP EXTRA:</strong><br>
+Si tu trabajo lo permite, toma vacaciones martes a jueves en lugar de viernes a domingo. Podrías ahorrar cientos de soles solo cambiando días.
+</div>
+
+¿Quieres saber algo más sobre cómo ahorrar? 😊""", False
+    
+    elif intencion == 'consejos':
+        return """💡 <strong>Guía Definitiva: Tips PRO para Ahorrar en Vuelos</strong><br><br>
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px; border-radius: 12px; margin: 15px 0;">
+<strong style="font-size: 18px;">🎯 LOS 10 SECRETOS MÁS IMPORTANTES</strong>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #667eea;">
+<strong>1️⃣ Usa SIEMPRE Modo Incógnito</strong><br>
+Las aerolíneas rastrean tus búsquedas con cookies y suben los precios cada vez que vuelves a buscar el mismo vuelo. 🕵️<br>
+<em>→ Ahorro potencial: 10-15%</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #4ade80;">
+<strong>2️⃣ Configura Alertas de Precio</strong><br>
+Google Flights, Skyscanner o Kayak te avisan cuando bajan los precios de tu ruta. 📧<br>
+<em>→ No pierdas ofertas flash</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #ff6348;">
+<strong>3️⃣ Flexibilidad de ±3 Días</strong><br>
+Si puedes mover tu viaje 3 días antes o después, ahorras hasta 30%. Usa calendarios de precios. 📅<br>
+<em>→ Ahorro potencial: 20-30%</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #ffa502;">
+<strong>4️⃣ Aeropuertos Alternativos</strong><br>
+A veces volar desde/hacia ciudades cercanas es más barato. Ejemplo: Callao vs Centro Lima. 🛫<br>
+<em>→ Ahorro potencial: 15-25%</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #26de81;">
+<strong>5️⃣ Suscríbete a Newsletters</strong><br>
+LATAM, Sky y JetSmart envían ofertas flash EXCLUSIVAS a suscriptores antes que al público. 📬<br>
+<em>→ Acceso a ofertas limitadas</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #764ba2;">
+<strong>6️⃣ Acumula Millas</strong><br>
+Incluso en vuelos económicos, acumula puntos. LATAM Pass es el más útil en Perú. ✈️<br>
+<em>→ Vuelos gratis a largo plazo</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #667eea;">
+<strong>7️⃣ Viaja Solo con Carry-on</strong><br>
+Evita costos de equipaje documentado. Ahorras dinero y tiempo en el aeropuerto. 🎒<br>
+<em>→ Ahorro: S/80-150 por vuelo</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #ffc107;">
+<strong>8️⃣ Compara Monedas</strong><br>
+A veces pagar en soles vs dólares hace diferencia. Prueba ambas opciones. 💱<br>
+<em>→ Ahorro potencial: 5-10%</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #ff4757;">
+<strong>9️⃣ Evita Fines de Semana</strong><br>
+Comprar y viajar entre semana es SIEMPRE más barato. 📆<br>
+<em>→ Ahorro potencial: 25-35%</em>
+</div>
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #4ade80;">
+<strong>🔟 Usa Tarjetas con Beneficios</strong><br>
+Algunas tarjetas de crédito ofrecen millas, seguros de viaje o descuentos. 💳<br>
+<em>→ Beneficios adicionales gratis</em>
+</div>
+
+<div style="background: linear-gradient(135deg, #26de81 0%, #4ade80 100%); color: white; padding: 20px; border-radius: 12px; margin: 20px 0;">
+<strong style="font-size: 18px;">🏆 FÓRMULA MAESTRA DEFINITIVA</strong><br><br>
+<div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px;">
+✅ Modo incógnito<br>
+✅ Compra un MARTES a las 11 PM<br>
+✅ Con 30-40 días de anticipación<br>
+✅ Para volar un MIÉRCOLES<br>
+✅ En temporada BAJA (Mar-May)<br>
+✅ Solo con carry-on<br>
+✅ Compara 3 aerolíneas<br><br>
+= <strong>¡AHORRO MÁXIMO POSIBLE: 40-50%!</strong> 💰🎉
+</div>
+</div>
+
+<div style="background: #fff3cd; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107; margin: 15px 0;">
+<strong>⚡ BONUS TIP:</strong><br>
+Si ves un buen precio, NO lo pienses mucho. Los algoritmos de aerolíneas detectan cuando muchas personas buscan la misma ruta y suben los precios en minutos. ¡Actúa rápido!
+</div>
+
+¿Quieres que analice tu predicción con estos consejos en mente? 😊""", False
+    
+    # ==================== RESPUESTA GENÉRICA ====================
+    else:
+        return """👋 <strong>Hola, estoy aquí para ayudarte</strong><br><br>
+
+Puedo responder preguntas sobre:<br><br>
+
+<div style="display: grid; gap: 10px;">
+<div style="background: #f0f7ff; padding: 12px; border-radius: 8px; border-left: 4px solid #667eea;">
+📊 <strong>"Analiza mi predicción"</strong><br>
+<small>Te doy un análisis completo y personalizado</small>
+</div>
+
+<div style="background: #f0f7ff; padding: 12px; border-radius: 8px; border-left: 4px solid #ff6348;">
+🏖️ <strong>"¿Cuándo es temporada alta?"</strong><br>
+<small>Mejores fechas para viajar y ahorrar</small>
+</div>
+
+<div style="background: #f0f7ff; padding: 12px; border-radius: 8px; border-left: 4px solid #26de81;">
+⏰ <strong>"¿Cuál es el mejor momento?"</strong><br>
+<small>Estrategias para conseguir mejor precio</small>
+</div>
+
+<div style="background: #f0f7ff; padding: 12px; border-radius: 8px; border-left: 4px solid #ffa502;">
+✈️ <strong>"Compara aerolíneas"</strong><br>
+<small>LATAM vs Sky vs JetSmart</small>
+</div>
+
+<div style="background: #f0f7ff; padding: 12px; border-radius: 8px; border-left: 4px solid #764ba2;">
+💡 <strong>"Dame consejos"</strong><br>
+<small>Tips profesionales para ahorrar</small>
+</div>
+</div>
+
+<br>También puedo ayudarte con:<br>
+• Información sobre escalas<br>
+• Mejores días para viajar<br>
+• Preguntas específicas sobre tu viaje<br><br>
+
+¿En qué te puedo ayudar hoy? 😊""", False    
 
 # ========== MANEJO DE ERRORES ==========
 @app.errorhandler(404)
