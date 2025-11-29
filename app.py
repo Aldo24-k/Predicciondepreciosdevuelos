@@ -29,7 +29,9 @@ app.secret_key = "clave_super_segura_2025_mejorada"
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 # ========== CONFIGURACIÓN DE POSTGRESQL ==========
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://vuelos_user:270225@localhost:5432/predictor_vuelos'
+DATABASE_URL = os.environ.get('DATABASE_URL', 
+                              'postgresql://vuelos_user:270225@db:5432/predictor_vuelos')
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
