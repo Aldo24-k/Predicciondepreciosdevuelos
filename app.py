@@ -25,16 +25,31 @@ import re
 
 # ========== CONFIGURACIÓN DE FLASK ==========
 app = Flask(__name__)
-app.secret_key = "clave_super_segura_2025_mejorada"
+#app.secret_key = "clave_super_segura_2025_mejorada"
+app.secret_key = os.environ.get('SECRET_KEY', 'clave_super_segura_2025_mejorada')
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
+# ========== CONFIGURACIÓN DE POSTGRESQL 1 ==========
+#DATABASE_URL = os.environ.get('DATABASE_URL', 
+#                               'postgresql://postgres:270225@db:5432/predictor_vuelos')
+#app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+#app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+#
+#db = SQLAlchemy(app)
+ 
 # ========== CONFIGURACIÓN DE POSTGRESQL ==========
-DATABASE_URL = os.environ.get('DATABASE_URL', 
-                               'postgresql://postgres:270225@db:5432/predictor_vuelos')
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+# Render usa postgres:// pero SQLAlchemy necesita postgresql://
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Si no hay DATABASE_URL (desarrollo local), usar la default
+if not DATABASE_URL:
+    DATABASE_URL = 'postgresql://postgres:270225@localhost:5432/predictor_vuelos'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
 
 # ========== MODELOS DE BASE DE DATOS ==========
 class Usuario(db.Model):
@@ -1505,5 +1520,8 @@ if __name__ == '__main__':
     else:
         print("⚠️  Datos no encontrados")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
-    
+    #app.run(debug=True, host='0.0.0.0', port=5000)
+    # CAMBIO AQUÍ ⬇️
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    app.run(debug=debug, host='0.0.0.0', port=port)
