@@ -30,7 +30,7 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 # ========== CONFIGURACIÓN DE POSTGRESQL ==========
 DATABASE_URL = os.environ.get('DATABASE_URL', 
-                              'postgresql://vuelos_user:270225@db:5432/predictor_vuelos')
+                               'postgresql://postgres:270225@db:5432/predictor_vuelos')
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -46,15 +46,20 @@ class Usuario(db.Model):
     contrasena = db.Column(db.String(255), nullable=False)
     fecha_creacion = db.Column(db.DateTime, default=datetime.now)
     activo = db.Column(db.Boolean, default=True)
-    
-    # Relación con historial
-    predicciones = db.relationship('Prediccion', backref='usuario_ref', lazy=True, cascade='all, delete-orphan')
-    
+
+    predicciones = db.relationship(
+        'Prediccion',
+        backref='usuario_ref',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
     def set_password(self, contrasena):
         self.contrasena = generate_password_hash(contrasena)
     
     def check_password(self, contrasena):
         return check_password_hash(self.contrasena, contrasena)
+
 
 class Prediccion(db.Model):
     __tablename__ = 'predicciones'
@@ -71,6 +76,7 @@ class Prediccion(db.Model):
     informacion = db.Column(db.String(100), nullable=False)
     precio_predicho = db.Column(db.Float, nullable=False)
     fecha_prediccion = db.Column(db.DateTime, default=datetime.now)
+print("📌 Base de datos REAL:", app.config['SQLALCHEMY_DATABASE_URI'])
 
 # ========== VARIABLES GLOBALES ==========
 modelo = None
@@ -730,7 +736,7 @@ def exportar_pdf():
         return jsonify({'error': str(e)}), 500
 
 
-# ========== RUTA DEL CHAT BOT MEJORADO ==========
+# ========== RUTA DEL CHAT BOT  ==========
 @app.route('/api/chat-bot', methods=['POST'])
 @login_requerido
 def chat_bot():

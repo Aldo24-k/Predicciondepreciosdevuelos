@@ -1,0 +1,10 @@
+Flask
+Flask_SQLAlchemy
+pandas
+numpy
+scikit-learn
+joblib
+psycopg2-binary
+reportlab
+openpyxl
+Werkzeug
