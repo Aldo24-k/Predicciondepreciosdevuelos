@@ -738,9 +738,6 @@ async function exportarPDF() {
 }
       
     </script>
-  <!-- ============================================ -->
-<!-- AGREGAR ESTE CÓDIGO ANTES DE </body> -->
-<!-- ============================================ -->
 
 <!-- BOT DE CHAT FLOTANTE -->
 <div id="chat-bot-container">
@@ -829,7 +826,18 @@ async function exportarPDF() {
   </div>
 </div>
 <style>
-  /* ============= CHAT BOT TEMA OSCURO ============= */
+  /* ============= CHAT BOT  ============= */
+  @media (max-width: 480px) {
+    .chat-bot-window {
+      height: 80% !important;
+      width: 92% !important;
+      bottom: 95px !important;
+    }
+  
+    .chat-bot-button {
+      bottom: 15px !important;
+    }
+  }
   #chat-bot-container {
     position: fixed;
     bottom: 20px;

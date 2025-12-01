@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: vuelos_flask
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      FLASK_ENV: production
+      DATABASE_URL: postgresql://vuelos_user:270225@db:5432/predictor_vuelos
+    volumes:
+      - .:/app
+    command: python app.py
+
+  db:
+    image: postgres:15
+    container_name: vuelos_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: vuelos_user
+      POSTGRES_PASSWORD: 270225
+      POSTGRES_DB: predictor_vuelos
+    ports:
+      - "5433:5432" # <--- Puerto cambiado
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres_data:

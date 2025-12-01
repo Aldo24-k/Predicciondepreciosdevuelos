@@ -25,11 +25,41 @@
 }
 
 body {
-  /* 🌌 FONDO MEJORADO - Mismo estilo que login */
+  /* 🌌  estilo  login */
   background: radial-gradient(circle at top left, #0d1b2a, #1b263b, #415a77);
   font-family: "Poppins", sans-serif;
   min-height: 100vh;
   color: var(--text-light);
+}
+/* BOTÓN HAMBURGUESA  */
+.navbar-toggler {
+  background: rgba(255, 255, 255, 0.08) !important;  /* gris azulado translucido */
+  border: 1px solid rgba(255, 255, 255, 0.15) !important; 
+  border-radius: 10px !important;
+  padding: 8px 10px !important;
+  backdrop-filter: blur(6px); /* efecto vidrio */
+  transition: all 0.25s ease-in-out;
+}
+
+/* LÍNEAS BLANCAS */
+.navbar-toggler-icon {
+  filter: invert(1) brightness(200%) !important;
+}
+
+/* HOVER EFECTO */
+.navbar-toggler:hover {
+  background: rgba(255, 255, 255, 0.20) !important; 
+  border-color: rgba(0, 200, 255, 0.5) !important;
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.4);
+  transform: scale(1.07);
+}
+
+/* CUANDO EL MENÚ ESTÁ ABIERTO */
+.navbar-toggler[aria-expanded="true"] {
+  background: rgba(13, 110, 253, 0.6) !important; /* azul brillante */
+  border-color: rgba(0, 217, 255, 0.6) !important;
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+  transform: scale(1.05);
 }
 
 /* ========== NAVBAR GLASSMORPHISM ========== */
@@ -639,7 +669,58 @@ body {
     padding: 20px;
   }
 }
+/* Ajuste para dropdown en celulares */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    min-width: 10px !important;
+    max-width: 50px !important;
 
+    width: auto !important;
+    font-size: 14px !important;
+    right: 0 !important;
+    left: auto !important;
+    position: absolute !important;
+    transform: translateX(0) !important;
+    margin-top: 8px !important;
+    padding: 0px 0;
+    border: none !important;          /* Quita el borde */
+    box-shadow: none !important;      /* Quita la sombra */
+    background: transparent !important; /* Fondo completamente transparente */
+    backdrop-filter: none !important; /* Asegura que no quede desenfoque */
+    padding: 0 !important;            /* Quita espacio interno */
+  }
+
+  .dropdown-item {
+    padding: 0px !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .dropdown-item i {
+    margin-right: 12px !important;
+    width: 20px !important;
+    text-align: center !important;
+    flex-shrink: 0;
+  }
+
+  .user-menu {
+    position: relative;
+  }
+
+  .dropdown {
+    position: relative;
+  }
+
+  /* Asegurar que el navbar contenga el dropdown */
+  .navbar-custom .container-fluid {
+    position: relative;
+  }
+
+  .navbar-custom .collapse {
+    position: relative;
+  }
+}
 /* ========== ANIMACIONES ADICIONALES ========== */
 @keyframes float {
   0%, 100% {
@@ -692,11 +773,7 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, var(--primary), var(--secondary));
 }
-/* ========================================================
-   AGREGAR ESTO AL FINAL DE TU index.css
-   ======================================================== */
-
-/* FORZAR TEXTO BLANCO EN TODA LA TABLA */
+/*  TEXTO BLANCO EN TODA LA TABLA */
 .table,
 .table th,
 .table td,
@@ -857,12 +934,8 @@ textarea:disabled {
   font-weight: 800 !important;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
 }
-/* ========================================================
-   SOLUCIÓN DEFINITIVA PARA HISTORIAL - TEXTO SIEMPRE VISIBLE
-   REEMPLAZA EL CÓDIGO ANTERIOR CON ESTE
-   ======================================================== */
 
-/* FORZAR TODO EL TEXTO DE LA TABLA EN BLANCO SIEMPRE */
+/* TEXTO DE LA TABLA EN BLANCO  */
 .historial-table,
 .historial-table *,
 .table,
@@ -894,11 +967,6 @@ textarea:disabled {
 .table tbody td {
   background-color: rgba(120, 120, 120, 0.3) !important;
 }
-
-
-
-
-
 
 
 /* FILAS - SIN HOVER QUE CAMBIE COLOR */

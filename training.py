@@ -113,13 +113,13 @@ class EntrenadorModeloVuelos:
         print("\n🤖 Entrenando modelo RandomForest...")
         
         self.modelo = RandomForestRegressor(
-            n_estimators=200,
-            max_depth=20,
-            min_samples_split=5,
-            min_samples_leaf=2,
-            random_state=42,
-            n_jobs=-1,
-            verbose=1
+            n_estimators=200, # 200 árboles de decisión
+            max_depth=20,     # Profundidad máxima de 20 niveles
+            min_samples_split=5, # Mínimo 5 muestras para dividir nodo
+            min_samples_leaf=2,  # Mínimo 2 muestras por hoja
+            random_state=42,  # Semilla para reproducibilidad
+            n_jobs=-1,  # Usa todos los núcleos CPU disponibles
+            verbose=1   # Muestra progreso
         )
         
         self.modelo.fit(self.X_train_scaled, self.y_train)
