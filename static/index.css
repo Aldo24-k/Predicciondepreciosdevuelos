@@ -31,7 +31,7 @@ body {
   min-height: 100vh;
   color: var(--text-light);
 }
-/* BOTÓN HAMBURGUESA ESTILO AEROPREDICT */
+/* BOTÓN HAMBURGUESA  */
 .navbar-toggler {
   background: rgba(255, 255, 255, 0.08) !important;  /* gris azulado translucido */
   border: 1px solid rgba(255, 255, 255, 0.15) !important; 
