@@ -51,6 +51,10 @@ if not DATABASE_URL:
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+print("📌 Base de datos configurada:", DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'local')
+
+# ========== INICIALIZAR SQLAlchemy AQUÍ (ANTES DE LOS MODELOS) ==========
+db = SQLAlchemy(app)
 # ========== MODELOS DE BASE DE DATOS ==========
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
@@ -91,7 +95,6 @@ class Prediccion(db.Model):
     informacion = db.Column(db.String(100), nullable=False)
     precio_predicho = db.Column(db.Float, nullable=False)
     fecha_prediccion = db.Column(db.DateTime, default=datetime.now)
-print("📌 Base de datos REAL:", app.config['SQLALCHEMY_DATABASE_URI'])
 
 # ========== VARIABLES GLOBALES ==========
 modelo = None
@@ -1504,24 +1507,49 @@ def error_interno(error):
                          detalle='Ocurrió un error en el servidor'), 500
 
 # ========== INICIALIZACIÓN ==========
+#if __name__ == '__main__':
+#    with app.app_context():
+#        db.create_all()  # Crear tablas si no existen
+    
+#   print("🚀 Iniciando aplicación Flask...")
+    
+#    if cargar_modelo():
+#        print("✓ Modelo cargado exitosamente")
+#    else:
+#        print("⚠️  Modelo no encontrado")
+#    
+#    if cargar_datos_cache():
+#        print("✓ Datos cargados en caché")
+#    else:
+#        print("⚠️  Datos no encontrados")
+    
+    #app.run(debug=True, host='0.0.0.0', port=5000)
+    # CAMBIO AQUÍ ⬇️
+#    port = int(os.environ.get('PORT', 5000))
+#    debug = os.environ.get('FLASK_ENV') != 'production'
+#    app.run(debug=debug, host='0.0.0.0', port=port)
+# ========== INICIALIZACIÓN ==========
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Crear tablas si no existen
+        try:
+            db.create_all()  # Crear tablas si no existen
+            print("✓ Tablas de base de datos creadas/verificadas")
+        except Exception as e:
+            print(f"⚠️ Error creando tablas: {e}")
     
     print("🚀 Iniciando aplicación Flask...")
     
     if cargar_modelo():
         print("✓ Modelo cargado exitosamente")
     else:
-        print("⚠️  Modelo no encontrado")
+        print("⚠️ Modelo no encontrado - Ejecuta training.py primero")
     
     if cargar_datos_cache():
         print("✓ Datos cargados en caché")
     else:
-        print("⚠️  Datos no encontrados")
+        print("⚠️ Datos no encontrados - Ejecuta generar_datos.py primero")
     
-    #app.run(debug=True, host='0.0.0.0', port=5000)
-    # CAMBIO AQUÍ ⬇️
+    # Configuración para producción
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') != 'production'
-    app.run(debug=debug, host='0.0.0.0', port=port)
+    app.run(debug=debug, host='0.0.0.0', port=port) 
