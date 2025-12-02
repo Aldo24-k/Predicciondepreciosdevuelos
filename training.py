@@ -228,25 +228,25 @@ class EntrenadorModeloVuelos:
     #    return True
     def entrenar_completo(self):
         """Ejecuta el pipeline completo de entrenamiento"""
-    try:
-        if not self.cargar_datos():
+        try:
+            if not self.cargar_datos():
+                return False
+            
+            self.preprocesar_datos()
+            self.dividir_datos()
+            self.escalar_datos()
+            self.entrenar_modelo()
+            metricas = self.evaluar_modelo()
+            self.guardar_modelo()
+            self.generar_reporte(metricas)
+            
+            print("\n✅ ¡Modelo entrenado y guardado exitosamente!")
+            return True
+        except Exception as e:
+            print(f"\n❌ Error en entrenamiento: {e}")
+            import traceback
+            traceback.print_exc()
             return False
-        
-        self.preprocesar_datos()
-        self.dividir_datos()
-        self.escalar_datos()
-        self.entrenar_modelo()
-        metricas = self.evaluar_modelo()
-        self.guardar_modelo()
-        self.generar_reporte(metricas)
-        
-        print("\n✅ ¡Modelo entrenado y guardado exitosamente!")
-        return True
-    except Exception as e:
-        print(f"\n❌ Error en entrenamiento: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
 
 #def main():
     # Verificar si existen los datos
