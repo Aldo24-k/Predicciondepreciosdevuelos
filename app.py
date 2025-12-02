@@ -1496,15 +1496,49 @@ Puedo responder preguntas sobre:<br><br>
 # ========== MANEJO DE ERRORES ==========
 @app.errorhandler(404)
 def no_encontrado(error):
-    return render_template('error.html',
-                         mensaje='Página no encontrada',
-                         detalle='La página que buscas no existe'), 404
+    try:
+        return render_template('error.html',
+                             mensaje='Página no encontrada',
+                             detalle='La página que buscas no existe'), 404
+    except:
+        return '''
+        <html>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1>404 - Página no encontrada</h1>
+            <p>La página que buscas no existe</p>
+            <a href="/">Volver al inicio</a>
+        </body>
+        </html>
+        ''', 404
 
 @app.errorhandler(500)
 def error_interno(error):
-    return render_template('error.html',
-                         mensaje='Error interno',
-                         detalle='Ocurrió un error en el servidor'), 500
+    try:
+        return render_template('error.html',
+                             mensaje='Error interno',
+                             detalle='Ocurrió un error en el servidor'), 500
+    except:
+        return '''
+        <html>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1>500 - Error interno</h1>
+            <p>Ocurrió un error en el servidor</p>
+            <a href="/">Volver al inicio</a>
+        </body>
+        </html>
+        ''', 500
+# ========== MANEJO DE ERRORES ==========
+#@app.errorhandler(404)
+#def no_encontrado(error):
+#    return render_template('error.html',
+#                         mensaje='Página no encontrada',
+#                         detalle='La página que buscas no existe'), 404
+#
+#@app.errorhandler(500)
+#def error_interno(error):
+#    return render_template('error.html',
+#                         mensaje='Error interno',
+#                         detalle='Ocurrió un error en el servidor'), 500
 
 # ========== INICIALIZACIÓN ==========
 #if __name__ == '__main__':
