@@ -1,14 +1,25 @@
+#import pandas as pd
+#import numpy as np
+#import joblib
+#from sklearn.model_selection import train_test_split
+#from sklearn.preprocessing import StandardScaler, LabelEncoder
+#from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+#from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+#import matplotlib.pyplot as plt
+#import seaborn as sns
+#from datetime import datetime
+#import os
+
 import pandas as pd
 import numpy as np
 import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-import matplotlib.pyplot as plt
-import seaborn as sns
 from datetime import datetime
 import os
+import sys  # ✅ AGREGAR ESTA LÍNEA
 
 class EntrenadorModeloVuelos:
     def __init__(self, archivo_datos='datos_vuelos_peru.xlsx'):
