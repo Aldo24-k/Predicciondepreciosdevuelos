@@ -129,13 +129,25 @@ def generar_datos_vuelos_peru(cantidad=10000):
 
     df = pd.DataFrame(datos)
     return df
+#def main():
+#    print("🇵🇪 Generando datos realistas de vuelos nacionales en Perú...")
+#    df = generar_datos_vuelos_peru(10000)
+#    archivo_excel = 'datos_vuelos.xlsx'
+#    df.to_excel(archivo_excel, index=False)
+#    print(f"✅ Datos guardados en: {archivo_excel}")
+#
+#if __name__ == "__main__":
+#    main()
 def main():
     print("🇵🇪 Generando datos realistas de vuelos nacionales en Perú...")
     df = generar_datos_vuelos_peru(10000)
     archivo_excel = 'datos_vuelos.xlsx'
     df.to_excel(archivo_excel, index=False)
     print(f"✅ Datos guardados en: {archivo_excel}")
+    return True
 
 if __name__ == "__main__":
-    main()
-
+    success = main()
+    if not success:
+        print("❌ Error generando datos")
+        exit(1)
