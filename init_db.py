@@ -1,37 +1,35 @@
-from app import app, db
-from sqlalchemy import text
+"""
+Script para inicializar la base de datos en Render
+"""
+import os
+import sys
 
-def init_database():
-    with app.app_context():
-        try:
-            print("🔧 Inicializando base de datos...")
-            
+def main():
+    print("🔧 Inicializando base de datos...")
+    
+    try:
+        # Importar app después de establecer variable de entorno
+        from app import app, db
+        
+        with app.app_context():
             # Crear todas las tablas
             db.create_all()
-            print("✓ Tablas creadas exitosamente:")
+            print("✓ Tablas creadas exitosamente")
             
-            # Verificar que las tablas existen
-            inspector = db.inspect(db.engine)
-            tables = inspector.get_table_names()
-            for table in tables:
-                print(f"  ✓ {table}")
-            
-            # Verificar conexión
-            result = db.session.execute(text('SELECT 1'))
-            print("✓ Conexión a base de datos verificada")
+            # Verificar tablas
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            tablas = inspector.get_table_names()
+            print(f"✓ Tablas encontradas: {tablas}")
             
             return True
             
-        except Exception as e:
-            print(f"❌ Error al inicializar base de datos: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
+    except Exception as e:
+        print(f"❌ Error inicializando base de datos: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 if __name__ == "__main__":
-    success = init_database()
-    if success:
-        print("\n✅ Base de datos inicializada correctamente")
-    else:
-        print("\n❌ Error al inicializar base de datos")
-        exit(1)
+    success = main()
+    sys.exit(0 if success else 1)
