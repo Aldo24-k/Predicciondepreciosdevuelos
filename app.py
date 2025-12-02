@@ -112,7 +112,7 @@ def login_requerido(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ========== CARGA DE MODELO ==========
+# ========== CARGA DE MODELO 1==========
 #def cargar_modelo():
 #    """Carga el modelo entrenado"""
 #    global modelo, scaler, label_encoders, features
@@ -124,6 +124,54 @@ def login_requerido(f):
 #        features = joblib.load('features.pkl')
 #        return True
 #    return False
+#def cargar_modelo():
+#    """Carga el modelo entrenado"""
+#    global modelo, scaler, label_encoders, features
+#    
+#    archivos_modelo = ['modelo_vuelos.pkl', 'scaler.pkl', 'label_encoders.pkl', 'features.pkl']
+#    
+#    # Verificar si todos los archivos existen
+#    if all(os.path.exists(f) for f in archivos_modelo):
+#        try:
+#            modelo = joblib.load('modelo_vuelos.pkl')
+#            scaler = joblib.load('scaler.pkl')
+#            label_encoders = joblib.load('label_encoders.pkl')
+#            features = joblib.load('features.pkl')
+#            print("✓ Modelo cargado exitosamente")
+#            return True
+#        except Exception as e:
+#            print(f"⚠️ Error cargando modelo: {e}")
+#    
+#    # Si no existen, entrenar el modelo automáticamente
+#    print("⚠️ Modelo no encontrado. Entrenando automáticamente...")
+#    try:
+#        import training
+#        resultado = training.main()
+#        if resultado:
+#            # Intentar cargar nuevamente
+#            modelo = joblib.load('modelo_vuelos.pkl')
+#            scaler = joblib.load('scaler.pkl')
+#            label_encoders = joblib.load('label_encoders.pkl')
+#            features = joblib.load('features.pkl')
+#            print("✓ Modelo entrenado y cargado exitosamente")
+#            return True
+#    except Exception as e:
+#        print(f"❌ Error entrenando modelo: {e}")
+#    
+#    return False
+
+#def cargar_datos_cache():
+#    """Carga los datos en caché"""
+#    global datos_cache
+#    
+#    if os.path.exists('datos_vuelos.xlsx'):
+#        datos_cache = pd.read_excel('datos_vuelos.xlsx')
+#    elif os.path.exists('datos_vuelos_peru.xlsx'):
+#        datos_cache = pd.read_excel('datos_vuelos_peru.xlsx')
+#    
+#    return datos_cache is not None
+
+# ========== CARGA DE MODELO ==========
 def cargar_modelo():
     """Carga el modelo entrenado"""
     global modelo, scaler, label_encoders, features
@@ -142,13 +190,22 @@ def cargar_modelo():
         except Exception as e:
             print(f"⚠️ Error cargando modelo: {e}")
     
-    # Si no existen, entrenar el modelo automáticamente
+    # Si no existen, entrenar automáticamente
     print("⚠️ Modelo no encontrado. Entrenando automáticamente...")
     try:
+        # Primero generar datos si no existen
+        if not os.path.exists('datos_vuelos.xlsx'):
+            print("📊 Generando datos de entrenamiento...")
+            import generar_datos
+            generar_datos.main()
+        
+        # Luego entrenar modelo
+        print("🤖 Entrenando modelo...")
         import training
         resultado = training.main()
+        
         if resultado:
-            # Intentar cargar nuevamente
+            # Cargar modelo recién entrenado
             modelo = joblib.load('modelo_vuelos.pkl')
             scaler = joblib.load('scaler.pkl')
             label_encoders = joblib.load('label_encoders.pkl')
@@ -157,6 +214,8 @@ def cargar_modelo():
             return True
     except Exception as e:
         print(f"❌ Error entrenando modelo: {e}")
+        import traceback
+        traceback.print_exc()
     
     return False
 
@@ -164,13 +223,32 @@ def cargar_datos_cache():
     """Carga los datos en caché"""
     global datos_cache
     
+    # Intentar cargar datos existentes
     if os.path.exists('datos_vuelos.xlsx'):
-        datos_cache = pd.read_excel('datos_vuelos.xlsx')
-    elif os.path.exists('datos_vuelos_peru.xlsx'):
-        datos_cache = pd.read_excel('datos_vuelos_peru.xlsx')
+        try:
+            datos_cache = pd.read_excel('datos_vuelos.xlsx')
+            print(f"✓ Datos cargados: {len(datos_cache)} registros")
+            return True
+        except Exception as e:
+            print(f"⚠️ Error cargando datos: {e}")
     
-    return datos_cache is not None
+    # Si no existen, generar automáticamente
+    print("📊 Generando datos automáticamente...")
+    try:
+        import generar_datos
+        generar_datos.main()
+        
+        # Intentar cargar nuevamente
+        if os.path.exists('datos_vuelos.xlsx'):
+            datos_cache = pd.read_excel('datos_vuelos.xlsx')
+            print(f"✓ Datos generados y cargados: {len(datos_cache)} registros")
+            return True
+    except Exception as e:
+        print(f"❌ Error generando datos: {e}")
+        import traceback
+        traceback.print_exc()
     
+    return False    
 
 # ========== RUTAS DE AUTENTICACIÓN ==========
 @app.route('/registro', methods=['GET', 'POST'])
@@ -1586,7 +1664,7 @@ def error_interno(error):
 #                         mensaje='Error interno',
 #                         detalle='Ocurrió un error en el servidor'), 500
 
-# ========== INICIALIZACIÓN ==========
+# ========== INICIALIZACIÓN1 ==========
 #if __name__ == '__main__':
 #    with app.app_context():
 #        db.create_all()  # Crear tablas si no existen
@@ -1609,27 +1687,73 @@ def error_interno(error):
 #    debug = os.environ.get('FLASK_ENV') != 'production'
 #    app.run(debug=debug, host='0.0.0.0', port=port)
 # ========== INICIALIZACIÓN ==========
+#if __name__ == '__main__':
+#    with app.app_context():
+#        try:
+#            db.create_all()  # Crear tablas si no existen
+#            print("✓ Tablas de base de datos creadas/verificadas")
+#        except Exception as e:
+#            print(f"⚠️ Error creando tablas: {e}")
+#    
+#    print("🚀 Iniciando aplicación Flask...")
+#    
+#    if cargar_modelo():
+#        print("✓ Modelo cargado exitosamente")
+#    else:
+#        print("⚠️ Modelo no encontrado - Ejecuta training.py primero")
+#    
+#    if cargar_datos_cache():
+#        print("✓ Datos cargados en caché")
+#    else:
+#        print("⚠️ Datos no encontrados - Ejecuta generar_datos.py primero")
+#    
+#    # Configuración para producción
+#    port = int(os.environ.get('PORT', 5000))
+#    debug = os.environ.get('FLASK_ENV') != 'production'
+#    app.run(debug=debug, host='0.0.0.0', port=port) 
+
+# ========== INICIALIZACIÓN ==========
 if __name__ == '__main__':
     with app.app_context():
         try:
-            db.create_all()  # Crear tablas si no existen
+            db.create_all()
             print("✓ Tablas de base de datos creadas/verificadas")
         except Exception as e:
             print(f"⚠️ Error creando tablas: {e}")
     
     print("🚀 Iniciando aplicación Flask...")
     
-    if cargar_modelo():
-        print("✓ Modelo cargado exitosamente")
-    else:
-        print("⚠️ Modelo no encontrado - Ejecuta training.py primero")
-    
+    # Cargar datos primero (necesarios para el modelo)
     if cargar_datos_cache():
-        print("✓ Datos cargados en caché")
+        print("✓ Datos disponibles")
     else:
-        print("⚠️ Datos no encontrados - Ejecuta generar_datos.py primero")
+        print("⚠️ No se pudieron cargar datos")
+    
+    # Luego cargar modelo
+    if cargar_modelo():
+        print("✓ Modelo disponible")
+    else:
+        print("⚠️ Modelo no disponible")
     
     # Configuración para producción
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') != 'production'
-    app.run(debug=debug, host='0.0.0.0', port=port) 
+    app.run(debug=debug, host='0.0.0.0', port=port)
+
+# ========== INICIALIZACIÓN PARA GUNICORN ==========
+# Esto se ejecuta cuando gunicorn carga la app
+print("🔧 Inicializando app para Gunicorn...")
+
+# Crear tablas
+with app.app_context():
+    try:
+        db.create_all()
+        print("✓ Base de datos inicializada")
+    except Exception as e:
+        print(f"⚠️ Error en base de datos: {e}")
+
+# Cargar datos y modelo al inicio
+print("📊 Cargando recursos...")
+cargar_datos_cache()
+cargar_modelo()
+print("✅ App lista para recibir peticiones")

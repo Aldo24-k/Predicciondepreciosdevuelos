@@ -10,15 +10,14 @@
 #Werkzeug
 
 Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Werkzeug==3.0.1
+gunicorn==21.2.0
+psycopg2-binary==2.9.9
 pandas==2.1.4
 numpy==1.26.2
 scikit-learn==1.3.2
 joblib==1.3.2
 openpyxl==3.1.2
-psycopg2-binary==2.9.9
-Flask-SQLAlchemy==3.1.1
-Werkzeug==3.0.1
-gunicorn==21.2.0
 reportlab==4.0.7
-matplotlib==3.8.2
-seaborn==0.13.0
+python-dateutil==2.8.2
