@@ -5,12 +5,21 @@ services:
     region: oregon
     plan: free
     buildCommand: |
+      echo "📦 Instalando dependencias..."
       pip install --upgrade pip
       pip install -r requirements.txt
-      python generar_datos.py
-      python training.py
-      python init_db.py
-    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --log-level info"
+      
+      echo "📊 Generando datos..."
+      python generar_datos.py || exit 1
+      
+      echo "🤖 Entrenando modelo..."
+      python training.py || exit 1
+      
+      echo "🔧 Inicializando base de datos..."
+      python init_db.py || exit 1
+      
+      echo "✅ Build completado exitosamente"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --log-level info --preload"
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
@@ -29,3 +38,13 @@ databases:
     user: vuelos_user
     plan: free
     region: oregon
+```
+
+---
+
+### **PASO 6: Crear `.slugignore` (Opcional)**
+
+Para asegurar que los archivos `.pkl` no se eliminen, crea `.slugignore`:
+```
+# Este archivo está vacío intencionalmente
+# No ignoramos nada para mantener los modelos

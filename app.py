@@ -113,16 +113,51 @@ def login_requerido(f):
     return decorated_function
 
 # ========== CARGA DE MODELO ==========
+#def cargar_modelo():
+#    """Carga el modelo entrenado"""
+#    global modelo, scaler, label_encoders, features
+#    
+#    if os.path.exists('modelo_vuelos.pkl'):
+#        modelo = joblib.load('modelo_vuelos.pkl')
+#        scaler = joblib.load('scaler.pkl')
+#        label_encoders = joblib.load('label_encoders.pkl')
+#        features = joblib.load('features.pkl')
+#        return True
+#    return False
 def cargar_modelo():
     """Carga el modelo entrenado"""
     global modelo, scaler, label_encoders, features
     
-    if os.path.exists('modelo_vuelos.pkl'):
-        modelo = joblib.load('modelo_vuelos.pkl')
-        scaler = joblib.load('scaler.pkl')
-        label_encoders = joblib.load('label_encoders.pkl')
-        features = joblib.load('features.pkl')
-        return True
+    archivos_modelo = ['modelo_vuelos.pkl', 'scaler.pkl', 'label_encoders.pkl', 'features.pkl']
+    
+    # Verificar si todos los archivos existen
+    if all(os.path.exists(f) for f in archivos_modelo):
+        try:
+            modelo = joblib.load('modelo_vuelos.pkl')
+            scaler = joblib.load('scaler.pkl')
+            label_encoders = joblib.load('label_encoders.pkl')
+            features = joblib.load('features.pkl')
+            print("✓ Modelo cargado exitosamente")
+            return True
+        except Exception as e:
+            print(f"⚠️ Error cargando modelo: {e}")
+    
+    # Si no existen, entrenar el modelo automáticamente
+    print("⚠️ Modelo no encontrado. Entrenando automáticamente...")
+    try:
+        import training
+        resultado = training.main()
+        if resultado:
+            # Intentar cargar nuevamente
+            modelo = joblib.load('modelo_vuelos.pkl')
+            scaler = joblib.load('scaler.pkl')
+            label_encoders = joblib.load('label_encoders.pkl')
+            features = joblib.load('features.pkl')
+            print("✓ Modelo entrenado y cargado exitosamente")
+            return True
+    except Exception as e:
+        print(f"❌ Error entrenando modelo: {e}")
+    
     return False
 
 def cargar_datos_cache():
@@ -206,13 +241,24 @@ def logout():
     return redirect(url_for('login'))
 
 # ========== RUTAS PRINCIPALES ==========
+#@app.route('/')
+#@login_requerido
+#def index():
+#    if modelo is None:
+#        return render_template('error.html', 
+#                             mensaje='Modelo no cargado',
+#                             detalle='Por favor ejecuta: python training.py')
+#    
+#    return render_template('index.html')
 @app.route('/')
 @login_requerido
 def index():
+    # Intentar cargar el modelo si no está cargado
     if modelo is None:
-        return render_template('error.html', 
-                             mensaje='Modelo no cargado',
-                             detalle='Por favor ejecuta: python training.py')
+        print("⚠️ Modelo no cargado, intentando cargar...")
+        if not cargar_modelo():
+            print("⚠️ No se pudo cargar el modelo")
+            # No mostrar error, la app puede seguir funcionando
     
     return render_template('index.html')
 

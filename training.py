@@ -211,8 +211,24 @@ class EntrenadorModeloVuelos:
         print(f"  MAE: S/ {metricas['test_mae']:.2f}")
         print("="*50)
     
+    #def entrenar_completo(self):
+    #    """Ejecuta el pipeline completo de entrenamiento"""
+    #    if not self.cargar_datos():
+    #        return False
+    #    
+    #    self.preprocesar_datos()
+    #    self.dividir_datos()
+    #    self.escalar_datos()
+    #    self.entrenar_modelo()
+    #    metricas = self.evaluar_modelo()
+    #    self.guardar_modelo()
+    #    self.generar_reporte(metricas)
+    
+    #    print("\n✅ ¡Modelo entrenado y guardado exitosamente!")
+    #    return True
     def entrenar_completo(self):
         """Ejecuta el pipeline completo de entrenamiento"""
+    try:
         if not self.cargar_datos():
             return False
         
@@ -226,6 +242,26 @@ class EntrenadorModeloVuelos:
         
         print("\n✅ ¡Modelo entrenado y guardado exitosamente!")
         return True
+    except Exception as e:
+        print(f"\n❌ Error en entrenamiento: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+#def main():
+    # Verificar si existen los datos
+#    archivo = 'datos_vuelos.xlsx'
+#    if not os.path.exists(archivo):
+#        print(f"⚠️  {archivo} no encontrado")
+#        print("Ejecuta primero: python generar_datos.py")
+#        return
+    
+    # Entrenar modelo
+#    entrenador = EntrenadorModeloVuelos(archivo)
+#    entrenador.entrenar_completo()
+
+#if __name__ == "__main__":
+#    main()
 
 def main():
     # Verificar si existen los datos
@@ -233,11 +269,14 @@ def main():
     if not os.path.exists(archivo):
         print(f"⚠️  {archivo} no encontrado")
         print("Ejecuta primero: python generar_datos.py")
-        return
+        return False
     
     # Entrenar modelo
     entrenador = EntrenadorModeloVuelos(archivo)
-    entrenador.entrenar_completo()
+    resultado = entrenador.entrenar_completo()
+    return resultado
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    if not success:
+        exit(1)
